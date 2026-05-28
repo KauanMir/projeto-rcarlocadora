@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────
+
+enum VehicleCategory {
+  ECONOMY
+  SEDAN
+  SUV
+  PREMIUM
+}
+
+enum VehicleFuel {
+  FLEX
+  GASOLINE
+  ELECTRIC
+  HYBRID
+}
+
+enum VehicleTransmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum InsuranceType {
+  BASIC
+  INTERMEDIATE
+  PREMIUM
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────────────────────
+
+model Vehicle {
+  id           String              @id @default(cuid())
+  name         String
+  slug         String              @unique
+  brand        String
+  model        String
+  year         Int
+  category     VehicleCategory
+  transmission VehicleTransmission
+  fuel         VehicleFuel
+  seats        Int
+  doors        Int
+  dailyRate    Decimal             @db.Decimal(10, 2)
+  imageUrl     String?
+  tags         String[]            @default([])
+  available    Boolean             @default(true)
+  featured     Boolean             @default(false)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  reservations Reservation[]
+
+  @@index([category])
+  @@index([available])
+}
+
+model Reservation {
+  id            String            @id @default(cuid())
+  vehicleId     String
+  pickupDate    DateTime
+  returnDate    DateTime
+  rentalDays    Int
+  insuranceType InsuranceType
+  addons        Json              @default("[]")
+  subtotal      Decimal           @db.Decimal(10, 2)
+  totalPrice    Decimal           @db.Decimal(10, 2)
+  status        ReservationStatus @default(PENDING)
+  customerName  String
+  customerPhone String
+  notes         String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+  @@index([pickupDate, returnDate])
+  @@index([status])
+}
+
+model Addon {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  pricePerDay Decimal  @db.Decimal(10, 2)
+  icon        String   @default("✨")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model SeasonalPricing {
+  id         String   @id @default(cuid())
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+  multiplier Decimal  @db.Decimal(4, 2)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([startDate, endDate])
+  @@index([active])
+}
