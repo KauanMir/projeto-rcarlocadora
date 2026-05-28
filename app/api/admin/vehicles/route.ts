@@ -22,6 +22,8 @@ export async function GET() {
       seats: v.seats,
       doors: v.doors,
       dailyRate: Number(v.dailyRate),
+      imageUrl: v.imageUrl,
+      galleryImages: v.galleryImages,
       available: v.available,
       featured: v.featured,
       tags: v.tags,

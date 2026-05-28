@@ -60,8 +60,9 @@ model Vehicle {
   seats        Int
   doors        Int
   dailyRate    Decimal             @db.Decimal(10, 2)
-  imageUrl     String?
-  tags         String[]            @default([])
+  imageUrl      String?
+  galleryImages String[]            @default([])
+  tags          String[]            @default([])
   available    Boolean             @default(true)
   featured     Boolean             @default(false)
   createdAt    DateTime            @default(now())

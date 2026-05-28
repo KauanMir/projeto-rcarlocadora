@@ -24,6 +24,8 @@ export default async function VehiclesPage() {
     seats: v.seats,
     doors: v.doors,
     dailyRate: Number(v.dailyRate),
+    imageUrl: v.imageUrl,
+    galleryImages: v.galleryImages,
     available: v.available,
     featured: v.featured,
     tags: v.tags,
@@ -36,14 +38,14 @@ export default async function VehiclesPage() {
     <div className="px-6 py-8">
       <div className="mb-8">
         <h1 className="text-white font-black text-2xl">Veículos</h1>
-        <p className="text-white/35 text-sm mt-1">Edite diárias, disponibilidade e informações da frota.</p>
+        <p className="text-white/35 text-sm mt-1">Edite diárias, disponibilidade, imagens e informações da frota.</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
         {[
           { label: "Total na frota", value: vehicles.length },
-          { label: "Disponíveis", value: active },
-          { label: "Indisponíveis", value: vehicles.length - active },
+          { label: "Disponíveis",    value: active },
+          { label: "Indisponíveis",  value: vehicles.length - active },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white/[0.025] border border-white/[0.07] rounded-xl p-4">
             <div className="text-white/30 text-[9px] tracking-[0.18em] uppercase mb-1">{label}</div>

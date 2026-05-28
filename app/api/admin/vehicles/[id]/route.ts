@@ -4,12 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
 const schema = z.object({
-  name:         z.string().min(1).max(120).optional(),
-  dailyRate:    z.number().positive().max(9999).optional(),
-  available:    z.boolean().optional(),
-  featured:     z.boolean().optional(),
-  transmission: z.enum(["MANUAL", "AUTOMATIC"]).optional(),
-  fuel:         z.enum(["FLEX", "GASOLINE", "ELECTRIC", "HYBRID"]).optional(),
+  name:          z.string().min(1).max(120).optional(),
+  dailyRate:     z.number().positive().max(9999).optional(),
+  available:     z.boolean().optional(),
+  featured:      z.boolean().optional(),
+  transmission:  z.enum(["MANUAL", "AUTOMATIC"]).optional(),
+  fuel:          z.enum(["FLEX", "GASOLINE", "ELECTRIC", "HYBRID"]).optional(),
+  imageUrl:      z.string().url().nullable().optional(),
+  galleryImages: z.array(z.string().url()).optional(),
 });
 
 export async function PATCH(
@@ -18,7 +20,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const body   = await request.json();
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
@@ -37,26 +39,25 @@ export async function PATCH(
       return NextResponse.json({ error: "Veículo não encontrado." }, { status: 404 });
     }
 
-    const { name, dailyRate, available, featured, transmission, fuel } = parsed.data;
+    const { name, dailyRate, available, featured, transmission, fuel, imageUrl, galleryImages } = parsed.data;
 
     const updated = await prisma.vehicle.update({
       where: { id },
       data: {
-        ...(name !== undefined         && { name }),
-        ...(dailyRate !== undefined    && { dailyRate: new Prisma.Decimal(dailyRate) }),
-        ...(available !== undefined    && { available }),
-        ...(featured !== undefined     && { featured }),
-        ...(transmission !== undefined && { transmission }),
-        ...(fuel !== undefined         && { fuel }),
+        ...(name          !== undefined && { name }),
+        ...(dailyRate     !== undefined && { dailyRate: new Prisma.Decimal(dailyRate) }),
+        ...(available     !== undefined && { available }),
+        ...(featured      !== undefined && { featured }),
+        ...(transmission  !== undefined && { transmission }),
+        ...(fuel          !== undefined && { fuel }),
+        ...(imageUrl      !== undefined && { imageUrl }),
+        ...(galleryImages !== undefined && { galleryImages }),
       },
       select: {
-        id: true,
-        name: true,
-        dailyRate: true,
-        available: true,
-        featured: true,
-        transmission: true,
-        fuel: true,
+        id: true, name: true, dailyRate: true,
+        available: true, featured: true,
+        transmission: true, fuel: true,
+        imageUrl: true, galleryImages: true,
       },
     });
 
