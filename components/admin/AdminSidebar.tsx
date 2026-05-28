@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 const NAV = [
-  { href: "/admin/reservations", label: "Reservas", icon: "📋" },
-  { href: "/admin/vehicles",     label: "Veículos",  icon: "🚗" },
+  { href: "/admin/reservations", label: "Reservas",   icon: "📋" },
+  { href: "/admin/calendar",     label: "Calendário", icon: "📅" },
+  { href: "/admin/vehicles",     label: "Veículos",   icon: "🚗" },
 ];
 
 export function AdminSidebar() {
