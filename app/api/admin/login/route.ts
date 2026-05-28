@@ -15,14 +15,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
     }
 
-    const adminPassword = process.env.ADMIN_PASSWORD ?? "";
+    const adminPassword = (process.env.ADMIN_PASSWORD ?? "").trim();
     if (!adminPassword) {
       console.error("[admin/login] ADMIN_PASSWORD is not configured");
       return NextResponse.json({ error: "Servidor não configurado." }, { status: 500 });
     }
 
+    const inputPassword = parsed.data.password.trim();
+
     // Constant-time comparison to prevent timing attacks
-    const inputBuf = Buffer.from(parsed.data.password);
+    const inputBuf = Buffer.from(inputPassword);
     const validBuf = Buffer.from(adminPassword);
     const match =
       inputBuf.length === validBuf.length &&

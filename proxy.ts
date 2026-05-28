@@ -4,7 +4,9 @@ import { jwtVerify } from "jose";
 const COOKIE_NAME = "admin_session";
 
 // Public admin routes — never require authentication
-const PUBLIC_ADMIN_PATHS = ["/admin/login"];
+// /api/admin/login MUST be here: without it the proxy blocks the login request
+// before the route handler runs, returning 401 ("Senha incorreta" on the client).
+const PUBLIC_ADMIN_PATHS = ["/admin/login", "/api/admin/login", "/api/admin/logout"];
 
 function secret(): Uint8Array {
   return new TextEncoder().encode(process.env.ADMIN_SESSION_SECRET ?? "");
