@@ -58,6 +58,11 @@ enum RentalStatus {
   CANCELLED
 }
 
+enum ChecklistType {
+  PICKUP
+  RETURN
+}
+
 // ─────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────
@@ -147,11 +152,28 @@ model Rental {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  reservation    Reservation  @relation(fields: [reservationId], references: [id])
-  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id])
+  reservation    Reservation       @relation(fields: [reservationId], references: [id])
+  vehicle        Vehicle           @relation(fields: [vehicleId], references: [id])
+  checklists     RentalChecklist[]
 
   @@index([status])
   @@index([vehicleId])
+}
+
+model RentalChecklist {
+  id        String        @id @default(cuid())
+  rentalId  String
+  type      ChecklistType
+  fuelLevel String
+  mileage   Int?
+  notes     String?
+  photos    String[]      @default([])
+  createdAt DateTime      @default(now())
+
+  rental    Rental        @relation(fields: [rentalId], references: [id])
+
+  @@unique([rentalId, type])
+  @@index([rentalId])
 }
 
 model Addon {

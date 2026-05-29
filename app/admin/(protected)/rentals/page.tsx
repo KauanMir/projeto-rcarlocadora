@@ -9,6 +9,7 @@ export default async function RentalsPage() {
     orderBy: { createdAt: "desc" },
     include: {
       vehicle: { select: { brand: true, model: true, name: true } },
+      checklists: { orderBy: { createdAt: "asc" } },
     },
   });
 
@@ -26,6 +27,14 @@ export default async function RentalsPage() {
     status: r.status as string,
     notes: r.notes ?? null,
     createdAt: r.createdAt.toISOString(),
+    checklists: r.checklists.map((c) => ({
+      type: c.type as string,
+      fuelLevel: c.fuelLevel,
+      mileage: c.mileage,
+      notes: c.notes ?? null,
+      photos: c.photos,
+      createdAt: c.createdAt.toISOString(),
+    })),
   }));
 
   const activeCount = rentals.filter((r) => r.status === "ACTIVE").length;

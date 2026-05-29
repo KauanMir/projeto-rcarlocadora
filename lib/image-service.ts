@@ -44,7 +44,8 @@ export function isCloudinaryConfigured(): boolean {
  */
 export function uploadImage(
   file: File,
-  onProgress?: (pct: number) => void
+  onProgress?: (pct: number) => void,
+  folder = "rcar/vehicles"
 ): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
@@ -53,7 +54,7 @@ export function uploadImage(
     const body = new FormData();
     body.append("file", file);
     body.append("upload_preset", preset);
-    body.append("folder", "rcar/vehicles");
+    body.append("folder", folder);
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);

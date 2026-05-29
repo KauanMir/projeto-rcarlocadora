@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToastStore } from "@/store/toastStore";
 import { formatDateShort } from "@/utils/format";
+import { ChecklistModal, type ChecklistData } from "./ChecklistModal";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ export interface RentalRow {
   status: string;
   notes: string | null;
   createdAt: string;
+  checklists: ChecklistData[];
 }
 
 // ─── Status config ────────────────────────────────────────────
@@ -283,6 +285,7 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
   const [filter, setFilter] = useState<Filter>("TODOS");
   const [actionId, setActionId] = useState<string | null>(null);
   const [modal, setModal] = useState<{ type: "activate" | "finalize" | "cancel"; rental: RentalRow } | null>(null);
+  const [checklistRental, setChecklistRental] = useState<RentalRow | null>(null);
 
   const filtered =
     filter === "TODOS" ? rentals : rentals.filter((r) => r.status === filter);
@@ -313,6 +316,21 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
     } finally {
       setActionId(null);
     }
+  }
+
+  function handleChecklistCreated(rentalId: string, checklist: ChecklistData) {
+    setRentals((prev) =>
+      prev.map((r) =>
+        r.id === rentalId
+          ? { ...r, checklists: [...r.checklists.filter((c) => c.type !== checklist.type), checklist] }
+          : r
+      )
+    );
+    setChecklistRental((prev) =>
+      prev?.id === rentalId
+        ? { ...prev, checklists: [...prev.checklists.filter((c) => c.type !== checklist.type), checklist] }
+        : prev
+    );
   }
 
   async function handleActivate(pickupMileage: number | null) {
@@ -456,7 +474,7 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
 
                       {/* Ações */}
                       <td className="px-5 py-4">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {r.status === "SCHEDULED" && (
                             <>
                               <ActionBtn
@@ -489,7 +507,21 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
                               />
                             </>
                           )}
-                          {(r.status === "COMPLETED" || r.status === "CANCELLED") && (
+                          {r.status !== "CANCELLED" && (
+                            <button
+                              onClick={() => setChecklistRental(r)}
+                              title="Checklist de entrega/devolução"
+                              aria-label="Abrir checklist"
+                              className={`h-7 px-2.5 rounded-md border text-[10px] font-semibold uppercase tracking-wide transition-all ${
+                                r.checklists.length > 0
+                                  ? "border-emerald-500/30 text-emerald-400/70 hover:text-emerald-300 hover:border-emerald-500/50"
+                                  : "border-white/[0.08] text-white/30 hover:text-white/60 hover:border-white/20"
+                              }`}
+                            >
+                              📋 {r.checklists.length > 0 ? `${r.checklists.length}/2` : "Check"}
+                            </button>
+                          )}
+                          {r.status === "CANCELLED" && (
                             <span className="text-white/15 text-xs">—</span>
                           )}
                         </div>
@@ -503,7 +535,19 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
         </div>
       )}
 
-      {/* Modals */}
+      {/* Checklist modal */}
+      <AnimatePresence>
+        {checklistRental && (
+          <ChecklistModal
+            key={checklistRental.id}
+            rental={checklistRental}
+            onClose={() => setChecklistRental(null)}
+            onCreated={handleChecklistCreated}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Action modals */}
       <AnimatePresence>
         {modal?.type === "activate" && (
           <ActivateModal

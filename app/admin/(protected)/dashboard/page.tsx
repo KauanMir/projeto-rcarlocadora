@@ -162,7 +162,7 @@ export default async function DashboardPage() {
   const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
   const twelveMonthsAgo = new Date(year, month - 11, 1);
 
-  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw, leadGroups, activeRentalsCount] =
+  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw, leadGroups, activeRentalsCount, rentalsWithoutChecklist] =
     await Promise.all([
       prisma.reservation.findMany({
         where: { createdAt: { gte: twelveMonthsAgo } },
@@ -211,6 +211,12 @@ export default async function DashboardPage() {
         _count: { status: true },
       }),
       prisma.rental.count({ where: { status: "ACTIVE" } }),
+      prisma.rental.count({
+        where: {
+          status: { in: ["ACTIVE", "COMPLETED"] },
+          NOT: { checklists: { some: { type: "PICKUP" } } },
+        },
+      }),
     ]);
 
   // ── KPI calculations ─────────────────────────────────────
@@ -366,6 +372,22 @@ export default async function DashboardPage() {
           sub="veículos na rua"
         />
       </div>
+
+      {/* Checklist warning */}
+      {rentalsWithoutChecklist > 0 && (
+        <div className="bg-amber-500/[0.07] border border-amber-500/20 rounded-xl px-5 py-3 mb-8 flex items-center gap-3 flex-wrap">
+          <span className="text-amber-400 text-base shrink-0" aria-hidden>⚠</span>
+          <span className="text-amber-400/80 text-sm flex-1">
+            {rentalsWithoutChecklist} locaç{rentalsWithoutChecklist !== 1 ? "ões" : "ão"} sem checklist de retirada
+          </span>
+          <a
+            href="/admin/rentals"
+            className="text-amber-400/60 text-xs font-semibold hover:text-amber-400 transition-colors shrink-0"
+          >
+            Verificar →
+          </a>
+        </div>
+      )}
 
       {/* Leads summary */}
       {totalLeads > 0 && (
