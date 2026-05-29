@@ -9,20 +9,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { useBookingStore } from "@/store/bookingStore";
 import { todayLocal } from "@/utils/dates";
 
-const LOCATIONS = [
-  "São Paulo - Centro",
-  "São Paulo - Aeroporto GRU",
-  "São Paulo - Aeroporto CGH",
-  "Campinas",
-  "Santos",
-];
-
-const STATS = [
-  { value: "2.400+", label: "Clientes Ativos" },
-  { value: "98%", label: "Satisfação" },
-  { value: "4.8★", label: "Avaliação" },
-];
-
 export function HeroSection() {
   const router = useRouter();
   const { setPickupDate, setReturnDate, setStep } = useBookingStore();
@@ -99,13 +85,11 @@ export function HeroSection() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
                 className="text-[clamp(3rem,7vw,5.5rem)] font-black text-white leading-[0.95] tracking-tight"
               >
-                Mobilidade
+                Aluguel
                 <br />
-                <span className="text-white/25">Premium.</span>
+                <span className="text-white/25">de Veículos.</span>
                 <br />
-                Sem
-                <br />
-                Compromisso.
+                Gama-DF.
               </motion.h1>
             </div>
 
@@ -115,8 +99,8 @@ export function HeroSection() {
               transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
               className="text-white/45 text-lg leading-relaxed max-w-md"
             >
-              Reserve o carro ideal para cada momento. Frota moderna, preços
-              transparentes e retirada em minutos.
+              Reserve o veículo ideal para sua viagem. Frota variada e
+              atendimento pelo WhatsApp.
             </motion.p>
 
             <motion.div
@@ -143,25 +127,6 @@ export function HeroSection() {
               >
                 Como Funciona
               </Link>
-            </motion.div>
-
-            {/* ── Stats ── */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.45 }}
-              className="flex items-center gap-10 pt-2"
-            >
-              {STATS.map((stat, i) => (
-                <div key={stat.label} className="flex flex-col gap-0.5">
-                  <span className="text-white font-black text-2xl tracking-tight leading-none">
-                    {stat.value}
-                  </span>
-                  <span className="text-white/30 text-[11px] tracking-[0.14em] uppercase">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
             </motion.div>
           </div>
 
@@ -192,19 +157,15 @@ export function HeroSection() {
               </div>
 
               <div className="flex flex-col gap-4">
+                {/* Location — single point, Gama-DF */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-white/40 text-[10px] tracking-[0.16em] uppercase font-semibold">
                     Local de Retirada
                   </label>
-                  <select
-                    className="w-full bg-white/[0.05] border border-white/[0.08] hover:border-white/20 rounded-sm text-white text-sm px-4 py-3.5 outline-none focus:border-white/25 transition-colors appearance-none cursor-pointer"
-                    style={{ colorScheme: "dark" }}
-                  >
-                    <option value="" className="bg-zinc-950">Selecione a cidade</option>
-                    {LOCATIONS.map((loc) => (
-                      <option key={loc} value={loc} className="bg-zinc-950">{loc}</option>
-                    ))}
-                  </select>
+                  <div className="w-full bg-white/[0.05] border border-white/[0.08] rounded-sm text-white text-sm px-4 py-3.5 flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" aria-hidden />
+                    Gama-DF
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -249,10 +210,6 @@ export function HeroSection() {
                 >
                   Buscar Veículos
                 </button>
-
-                <p className="text-white/20 text-[11px] text-center tracking-wide">
-                  Sem taxa de reserva · Cancele grátis até 24h antes
-                </p>
               </div>
             </div>
           </motion.div>

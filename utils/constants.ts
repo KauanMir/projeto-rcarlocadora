@@ -2,7 +2,7 @@ import type { Vehicle } from "@/types/vehicle";
 import type { InsuranceOption, Addon } from "@/types/booking";
 
 export const SITE_NAME = "RCAR";
-export const SITE_TAGLINE = "Mobilidade Premium. Sem Compromisso.";
+export const SITE_TAGLINE = "Aluguel de Veículos em Gama-DF.";
 
 export const NAV_LINKS = [
   { label: "Frota", href: "#frota" },

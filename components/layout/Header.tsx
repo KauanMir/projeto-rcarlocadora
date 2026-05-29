@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { NAV_LINKS, SITE_NAME } from "@/utils/constants";
+import { LogoMark } from "@/components/brand/LogoMark";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -31,8 +32,8 @@ export function Header() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center transition-transform duration-200 group-hover:scale-95">
-            <span className="text-black font-black text-sm tracking-tighter">R</span>
+          <div className="transition-transform duration-200 group-hover:scale-95">
+            <LogoMark size={32} />
           </div>
           <span className="text-white font-bold text-lg tracking-[0.22em] uppercase">
             {SITE_NAME}
