@@ -200,7 +200,8 @@ export function HeroSection() {
                     <option value="economy" className="bg-zinc-950">Econômico</option>
                     <option value="sedan" className="bg-zinc-950">Sedan</option>
                     <option value="suv" className="bg-zinc-950">SUV</option>
-                    <option value="premium" className="bg-zinc-950">Premium</option>
+                    <option value="minivan" className="bg-zinc-950">Minivan</option>
+                    <option value="pickup" className="bg-zinc-950">Picape</option>
                   </select>
                 </div>
 

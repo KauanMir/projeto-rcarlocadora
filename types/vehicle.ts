@@ -1,6 +1,6 @@
-export type VehicleCategory = "economy" | "sedan" | "suv" | "premium";
+export type VehicleCategory = "economy" | "sedan" | "suv" | "premium" | "minivan" | "pickup";
 
-export type VehicleFuel = "flex" | "gasoline" | "electric" | "hybrid";
+export type VehicleFuel = "flex" | "gasoline" | "electric" | "hybrid" | "diesel";
 
 export type VehicleTransmission = "manual" | "automatic";
 
@@ -20,7 +20,7 @@ export interface Vehicle {
   year: number;
   category: VehicleCategory;
   pricePerDay: number;
-  image: string;
+  image: string | null;
   specs: VehicleSpec;
   tags: string[];
   available: boolean;

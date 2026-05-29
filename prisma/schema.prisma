@@ -16,6 +16,8 @@ enum VehicleCategory {
   SEDAN
   SUV
   PREMIUM
+  MINIVAN
+  PICKUP
 }
 
 enum VehicleFuel {
@@ -23,6 +25,7 @@ enum VehicleFuel {
   GASOLINE
   ELECTRIC
   HYBRID
+  DIESEL
 }
 
 enum VehicleTransmission {

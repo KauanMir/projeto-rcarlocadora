@@ -8,18 +8,24 @@ import { formatPrice } from "@/utils/format";
 import type { Vehicle } from "@/types/vehicle";
 
 const CATEGORY_FILTERS = [
-  { value: "all", label: "Todos" },
+  { value: "all",     label: "Todos"     },
   { value: "economy", label: "Econômico" },
-  { value: "sedan", label: "Sedan" },
-  { value: "suv", label: "SUV" },
+  { value: "sedan",   label: "Sedan"     },
+  { value: "suv",     label: "SUV"       },
+  { value: "minivan", label: "Minivan"   },
+  { value: "pickup",  label: "Picape"    },
 ];
 
 // Brand-specific showroom gradient tints
 const BRAND_TINT: Record<string, string> = {
-  Hyundai: "radial-gradient(ellipse at top right, rgba(40,60,120,0.18) 0%, transparent 70%)",
-  Chevrolet: "radial-gradient(ellipse at top right, rgba(120,80,20,0.15) 0%, transparent 70%)",
-  Toyota: "radial-gradient(ellipse at top right, rgba(20,80,60,0.15) 0%, transparent 70%)",
-  Jeep: "radial-gradient(ellipse at top right, rgba(100,60,20,0.18) 0%, transparent 70%)",
+  Renault:    "radial-gradient(ellipse at top right, rgba(30,60,140,0.16) 0%, transparent 70%)",
+  Fiat:       "radial-gradient(ellipse at top right, rgba(140,30,30,0.14) 0%, transparent 70%)",
+  Volkswagen: "radial-gradient(ellipse at top right, rgba(20,60,160,0.15) 0%, transparent 70%)",
+  Ford:       "radial-gradient(ellipse at top right, rgba(0,50,130,0.14) 0%, transparent 70%)",
+  Peugeot:    "radial-gradient(ellipse at top right, rgba(60,40,120,0.14) 0%, transparent 70%)",
+  Hyundai:    "radial-gradient(ellipse at top right, rgba(40,60,120,0.18) 0%, transparent 70%)",
+  Chevrolet:  "radial-gradient(ellipse at top right, rgba(120,80,20,0.15) 0%, transparent 70%)",
+  Toyota:     "radial-gradient(ellipse at top right, rgba(20,80,60,0.15) 0%, transparent 70%)",
 };
 
 function VehicleCard({ vehicle, index }: { vehicle: Vehicle; index: number }) {
