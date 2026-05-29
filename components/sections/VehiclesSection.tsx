@@ -1,94 +1,56 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { MOCKED_VEHICLES, CATEGORY_LABELS, FUEL_LABELS } from "@/utils/constants";
-import { useBookingStore } from "@/store/bookingStore";
+import { SHOWROOM_CATEGORIES } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
-import type { Vehicle } from "@/types/vehicle";
+import type { ShowroomCategory } from "@/types/vehicle";
 
-const CATEGORY_FILTERS = [
-  { value: "all",     label: "Todos"     },
-  { value: "economy", label: "Econômico" },
-  { value: "sedan",   label: "Sedan"     },
-  { value: "suv",     label: "SUV"       },
-  { value: "minivan", label: "Minivan"   },
-  { value: "pickup",  label: "Picape"    },
-];
-
-// Brand-specific showroom gradient tints
-const BRAND_TINT: Record<string, string> = {
-  Renault:    "radial-gradient(ellipse at top right, rgba(30,60,140,0.16) 0%, transparent 70%)",
-  Fiat:       "radial-gradient(ellipse at top right, rgba(140,30,30,0.14) 0%, transparent 70%)",
-  Volkswagen: "radial-gradient(ellipse at top right, rgba(20,60,160,0.15) 0%, transparent 70%)",
-  Ford:       "radial-gradient(ellipse at top right, rgba(0,50,130,0.14) 0%, transparent 70%)",
-  Peugeot:    "radial-gradient(ellipse at top right, rgba(60,40,120,0.14) 0%, transparent 70%)",
-  Hyundai:    "radial-gradient(ellipse at top right, rgba(40,60,120,0.18) 0%, transparent 70%)",
-  Chevrolet:  "radial-gradient(ellipse at top right, rgba(120,80,20,0.15) 0%, transparent 70%)",
-  Toyota:     "radial-gradient(ellipse at top right, rgba(20,80,60,0.15) 0%, transparent 70%)",
-};
-
-function VehicleCard({ vehicle, index }: { vehicle: Vehicle; index: number }) {
-  const openModal = useBookingStore((s) => s.openModal);
-
+function CategoryCard({ category, index }: { category: ShowroomCategory; index: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.55, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.55, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
       className="group flex flex-col bg-[#0a0a0a] border border-white/[0.07] rounded-xl overflow-hidden hover:border-white/20 hover:-translate-y-1 transition-all duration-300"
       style={{ willChange: "transform" }}
     >
-      {/* ── Showroom image area ── */}
-      <div className="relative h-52 overflow-hidden bg-[#0a0a0a] flex-shrink-0">
-        {/* Brand-specific ambient tint */}
-        <div
-          className="absolute inset-0 transition-opacity duration-500 group-hover:opacity-150"
-          style={{ background: BRAND_TINT[vehicle.brand] ?? "none" }}
-        />
-
-        {/* Vehicle photo — shown when available */}
-        {vehicle.image ? (
+      {/* Image area */}
+      <div className="relative h-48 bg-[#0d0d0d] overflow-hidden flex-shrink-0">
+        {category.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={vehicle.image}
-            alt={`${vehicle.brand} ${vehicle.model}`}
-            className="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+            src={category.image}
+            alt={category.name}
+            className="absolute inset-0 w-full h-full object-contain p-5 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          /* Ghost model name fallback when no photo */
-          <div className="absolute inset-0 flex items-center justify-center overflow-hidden select-none pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none">
             <span
-              className="text-white font-black leading-none whitespace-nowrap tracking-tighter"
-              style={{ fontSize: "clamp(72px, 12vw, 96px)", opacity: 0.04 }}
+              className="text-white font-black leading-none tracking-tighter"
+              style={{ fontSize: "clamp(56px, 8vw, 72px)", opacity: 0.04 }}
             >
-              {vehicle.model.toUpperCase()}
+              {category.name.split(" ")[0].toUpperCase()}
             </span>
           </div>
         )}
 
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/60 via-transparent to-transparent pointer-events-none" />
+        {/* Bottom gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/70 via-transparent to-transparent pointer-events-none" />
 
-        {/* Showroom floor reflection line */}
-        <div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent pointer-events-none" />
-
-        {/* Tags */}
-        <div className="absolute top-4 left-4 z-10 flex gap-1.5 flex-wrap">
-          {vehicle.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-[9px] font-black tracking-[0.15em] uppercase bg-white text-black px-2 py-0.5 rounded-sm"
-            >
-              {tag}
+        {/* Tag badge */}
+        {category.tag && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="text-[9px] font-black tracking-[0.15em] uppercase bg-[#ffb800] text-black px-2 py-1 rounded-sm">
+              {category.tag}
             </span>
-          ))}
-        </div>
+          </div>
+        )}
 
-        {/* Price glass pill */}
+        {/* Price pill */}
         <div
-          className="absolute bottom-4 right-4 z-10 text-right rounded-sm px-3 py-2"
+          className="absolute bottom-3 right-3 z-10 rounded-sm px-3 py-2 text-right"
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.08)",
@@ -96,59 +58,29 @@ function VehicleCard({ vehicle, index }: { vehicle: Vehicle; index: number }) {
           }}
         >
           <div className="text-white/35 text-[9px] tracking-[0.12em] uppercase leading-none mb-0.5">a partir de</div>
-          <div className="text-white font-black text-xl leading-none">
-            {formatPrice(vehicle.pricePerDay)}
+          <div className="text-white font-black text-lg leading-none">
+            {formatPrice(category.pricePerDay)}
             <span className="text-white/35 text-xs font-normal">/dia</span>
           </div>
         </div>
       </div>
 
-      {/* ── Info area ── */}
-      <div className="flex flex-col flex-1 p-5 gap-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-white font-bold text-lg leading-none">{vehicle.model}</h3>
-            <p className="text-white/35 text-sm mt-1">{vehicle.name}</p>
-          </div>
-          <Badge
-            variant="outline"
-            className="border-white/12 text-white/30 text-[9px] tracking-[0.14em] uppercase rounded-sm shrink-0"
-          >
-            {CATEGORY_LABELS[vehicle.category]}
-          </Badge>
+      {/* Info area */}
+      <div className="flex flex-col flex-1 p-5 gap-3">
+        <div>
+          <h3 className="text-white font-bold text-base leading-snug">{category.name}</h3>
+          <p className="text-white/30 text-xs mt-1.5 leading-relaxed">
+            {category.models.join(" · ")}
+          </p>
         </div>
 
-        {/* Specs */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: "👥", label: `${vehicle.specs.seats} lugares` },
-            { icon: "⛽", label: FUEL_LABELS[vehicle.specs.fuel] },
-            { icon: "⚙️", label: vehicle.specs.transmission === "automatic" ? "Auto" : "Manual" },
-          ].map((spec) => (
-            <div
-              key={spec.label}
-              className="flex flex-col items-center gap-1.5 bg-white/[0.025] border border-white/[0.06] rounded-md p-2.5"
-            >
-              <span className="text-sm leading-none">{spec.icon}</span>
-              <span className="text-white/30 text-[10px] text-center leading-tight">{spec.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* CTAs */}
-        <div className="flex gap-2 mt-auto">
-          <button
-            onClick={() => openModal(vehicle)}
-            className="flex-1 h-10 border border-white/12 text-white/45 hover:text-white hover:border-white/25 active:scale-[0.97] rounded-sm text-xs font-medium transition-all duration-200"
-          >
-            Detalhes
-          </button>
-          <button
-            onClick={() => openModal(vehicle)}
-            className="flex-1 h-10 bg-white text-black hover:bg-white/90 active:scale-[0.97] font-semibold rounded-sm text-xs transition-all duration-200"
+        <div className="mt-auto pt-1">
+          <Link
+            href={`/booking?category=${category.dbCategory}`}
+            className="flex w-full h-10 items-center justify-center bg-white text-black hover:bg-[#ffb800] active:scale-[0.97] font-semibold rounded-sm text-xs tracking-[0.06em] uppercase transition-all duration-200"
           >
             Reservar
-          </button>
+          </Link>
         </div>
       </div>
     </motion.div>
@@ -159,7 +91,7 @@ export function VehiclesSection() {
   return (
     <section id="frota" className="bg-[#080808] py-28 border-t border-white/[0.04]">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+        <div className="mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -169,39 +101,24 @@ export function VehiclesSection() {
             <p className="text-white/25 text-[10px] tracking-[0.2em] uppercase font-semibold mb-4">
               Nossa Frota
             </p>
-            <h2 className="text-white font-black leading-[0.95] tracking-tight"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 3.75rem)" }}>
-              Escolha o seu
+            <h2
+              className="text-white font-black leading-[0.95] tracking-tight"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 3.75rem)" }}
+            >
+              Escolha sua
               <br />
-              <span className="text-white/25">veículo ideal.</span>
+              <span className="text-white/25">categoria ideal.</span>
             </h2>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex gap-2 flex-wrap"
-          >
-            {CATEGORY_FILTERS.map((filter, i) => (
-              <button
-                key={filter.value}
-                className={`px-4 py-2 text-[10px] font-bold tracking-[0.16em] uppercase rounded-sm transition-all duration-200 active:scale-[0.97] ${
-                  i === 0
-                    ? "bg-white text-black"
-                    : "border border-white/12 text-white/35 hover:border-white/25 hover:text-white/70"
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
+            <p className="text-white/35 text-sm mt-5 max-w-lg leading-relaxed">
+              Trabalhamos com categorias de veículos — você reserva a categoria e
+              recebe o melhor modelo disponível. Garantia de qualidade e conforto.
+            </p>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {MOCKED_VEHICLES.map((vehicle, index) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} index={index} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {SHOWROOM_CATEGORIES.map((category, index) => (
+            <CategoryCard key={category.id} category={category} index={index} />
           ))}
         </div>
 
@@ -212,9 +129,9 @@ export function VehiclesSection() {
           transition={{ duration: 0.5 }}
           className="mt-14 text-center"
         >
-          <button className="px-12 h-11 border border-white/12 text-white/35 hover:text-white/70 hover:border-white/25 active:scale-[0.98] rounded-sm text-xs font-semibold tracking-[0.14em] uppercase transition-all duration-200">
-            Ver Frota Completa
-          </button>
+          <p className="text-white/20 text-xs tracking-[0.12em] uppercase">
+            Todos os veículos com ar-condicionado · Manutenção em dia · Documentação regularizada
+          </p>
         </motion.div>
       </div>
     </section>

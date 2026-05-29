@@ -32,7 +32,8 @@ function LineItem({
 }
 
 export function PriceSummaryPanel() {
-  const { vehicle, rentalDays, insurance, selectedAddons, priceBreakdown } = useBookingStore();
+  const { vehicle, rentalDays, insurance, selectedAddons, priceBreakdown, serverPricing, serverPricingLoading } = useBookingStore();
+  const displayTotal = serverPricing?.total ?? priceBreakdown.total;
 
   return (
     <div
@@ -104,18 +105,22 @@ export function PriceSummaryPanel() {
             className="pt-4 border-t border-white/[0.07] flex items-baseline justify-between"
           >
             <span className="text-white/30 text-[10px] tracking-[0.16em] uppercase">Total</span>
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={priceBreakdown.total}
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="text-white font-black text-2xl tracking-tight"
-              >
-                {formatPrice(priceBreakdown.total)}
-              </motion.span>
-            </AnimatePresence>
+            {serverPricingLoading ? (
+              <span className="text-white/25 text-sm">Calculando...</span>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={displayTotal}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="text-white font-black text-2xl tracking-tight"
+                >
+                  {formatPrice(displayTotal)}
+                </motion.span>
+              </AnimatePresence>
+            )}
           </motion.div>
         )}
       </div>

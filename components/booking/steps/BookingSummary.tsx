@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
+import { useState, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useBookingStore } from "@/store/bookingStore";
@@ -8,7 +8,7 @@ import { useToastStore } from "@/store/toastStore";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import { formatPrice, formatDateLong } from "@/utils/format";
 import { Skeleton } from "@/components/ui/Skeleton";
-import type { PricingApiResponse, CreateReservationRequest } from "@/types/api";
+import type { CreateReservationRequest } from "@/types/api";
 
 type SubmitStatus = "idle" | "loading" | "conflict" | "error";
 
@@ -137,47 +137,14 @@ function SuccessScreen({ reservationId, onReset }: { reservationId: string; onRe
 
 export function BookingSummary() {
   const router = useRouter();
-  const { vehicle, pickupDate, returnDate, rentalDays, insurance, selectedAddons, priceBreakdown, setStep, reset } =
+  const { vehicle, pickupDate, returnDate, rentalDays, insurance, selectedAddons, priceBreakdown, setStep, reset, serverPricing, serverPricingLoading: pricingLoading } =
     useBookingStore();
   const addToast = useToastStore((s) => s.add);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
-  const [serverPricing, setServerPricing] = useState<PricingApiResponse | null>(null);
-  const [pricingLoading, setPricingLoading] = useState(false);
   const [reservationId, setReservationId] = useState<string | null>(null);
-
-  const addonFingerprint = selectedAddons.map((a) => a.id).sort().join(",");
-
-  // Fetch server-calculated pricing whenever the booking selection changes.
-  // Deps are stable primitives — safe to include.
-  useEffect(() => {
-    if (!vehicle || !pickupDate || !returnDate || !insurance) return;
-
-    let cancelled = false;
-    setPricingLoading(true);
-    setServerPricing(null);
-
-    fetch("/api/pricing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        vehicleId: vehicle.id,
-        pickupDate,
-        returnDate,
-        insuranceType: insurance.id,
-        addons: selectedAddons.map((a) => a.id),
-      }),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: PricingApiResponse | null) => { if (!cancelled && data) setServerPricing(data); })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setPricingLoading(false); });
-
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, pickupDate, returnDate, insurance?.id, addonFingerprint]);
 
   if (reservationId) {
     return (

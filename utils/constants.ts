@@ -1,4 +1,4 @@
-import type { Vehicle } from "@/types/vehicle";
+import type { Vehicle, ShowroomCategory } from "@/types/vehicle";
 import type { InsuranceOption, Addon } from "@/types/booking";
 
 export const SITE_NAME = "RCAR";
@@ -65,6 +65,82 @@ export const MOCKED_VEHICLES: Vehicle[] = [
     specs: { seats: 5, doors: 4, fuel: "diesel", transmission: "automatic", airConditioning: true },
     tags: ["Diesel", "4x4"],
     available: true,
+  },
+];
+
+export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
+  {
+    id: "economico-compacto",
+    name: "Econômico Compacto",
+    pricePerDay: 100,
+    models: ["Kwid", "Mobi", "Uno Attractive"],
+    image: "/vehicles/kwid01.png",
+    dbCategory: "economy",
+  },
+  {
+    id: "economico-especial",
+    name: "Econômico Especial",
+    pricePerDay: 130,
+    models: ["Onix", "HB20", "Gol", "KA", "Polo", "Argo"],
+    image: "/vehicles/argo.png",
+    tag: "Mais Alugado",
+    dbCategory: "economy",
+  },
+  {
+    id: "intermediario-sedan",
+    name: "Intermediário Sedan",
+    pricePerDay: 135,
+    models: ["Cronos", "Virtus", "Onix Sedan", "HB20S"],
+    image: "/vehicles/onix_lt_sedan01.png",
+    dbCategory: "sedan",
+  },
+  {
+    id: "intermediario-automatico",
+    name: "Intermediário Automático",
+    pricePerDay: 150,
+    models: ["Peugeot 208", "Logan 1.6", "Ford KA"],
+    image: "/vehicles/pegeout_208_hatch01.png",
+    dbCategory: "sedan",
+  },
+  {
+    id: "suv-especial",
+    name: "SUV Especial",
+    pricePerDay: 300,
+    models: ["Tracker Turbo"],
+    image: "/vehicles/tracker.png",
+    dbCategory: "suv",
+  },
+  {
+    id: "suv-elite",
+    name: "SUV Elite",
+    pricePerDay: 300,
+    models: ["Pulse", "Creta"],
+    image: null,
+    dbCategory: "suv",
+  },
+  {
+    id: "minivan-automatica",
+    name: "Mini Van Automática",
+    pricePerDay: 300,
+    models: ["Spin Automática"],
+    image: "/vehicles/spin.png",
+    dbCategory: "minivan",
+  },
+  {
+    id: "picape-luxo",
+    name: "Picape Luxo",
+    pricePerDay: 350,
+    models: ["Toro 4x4", "Amarok", "Montana"],
+    image: "/vehicles/toro.png",
+    dbCategory: "pickup",
+  },
+  {
+    id: "picape-especial",
+    name: "Picape Especial",
+    pricePerDay: 480,
+    models: ["S10", "Hilux Diesel 4x4"],
+    image: "/vehicles/hilux-diesiel-4x4.png",
+    dbCategory: "pickup",
   },
 ];
 

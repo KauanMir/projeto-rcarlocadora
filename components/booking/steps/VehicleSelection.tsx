@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 import { useBookingStore } from "@/store/bookingStore";
 import { useAvailableVehicles } from "@/hooks/useAvailableVehicles";
 import { FUEL_LABELS } from "@/utils/constants";
@@ -35,8 +36,10 @@ function VehicleCardSkeleton() {
 }
 
 export function VehicleSelection() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category") ?? undefined;
   const { vehicle: selectedVehicle, setVehicle, pickupDate, returnDate } = useBookingStore();
-  const { vehicles, status, usingFallback } = useAvailableVehicles(pickupDate, returnDate);
+  const { vehicles, status, usingFallback } = useAvailableVehicles(pickupDate, returnDate, category);
 
   const isLoading = status === "loading";
   const isEmpty = status === "empty";

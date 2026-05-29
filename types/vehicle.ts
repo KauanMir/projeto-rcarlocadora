@@ -1,5 +1,15 @@
 export type VehicleCategory = "economy" | "sedan" | "suv" | "premium" | "minivan" | "pickup";
 
+export interface ShowroomCategory {
+  id: string;
+  name: string;
+  pricePerDay: number;
+  models: string[];
+  image: string | null;
+  tag?: string;
+  dbCategory: string; // matches Prisma VehicleCategory (lowercase) for booking flow filter
+}
+
 export type VehicleFuel = "flex" | "gasoline" | "electric" | "hybrid" | "diesel";
 
 export type VehicleTransmission = "manual" | "automatic";

@@ -17,7 +17,8 @@ interface UseAvailableVehiclesReturn {
 
 export function useAvailableVehicles(
   pickupDate: string | null,
-  returnDate: string | null
+  returnDate: string | null,
+  category?: string
 ): UseAvailableVehiclesReturn {
   const [vehicles, setVehicles] = useState<Vehicle[]>(MOCKED_VEHICLES);
   const [status, setStatus] = useState<Status>("idle");
@@ -29,7 +30,9 @@ export function useAvailableVehicles(
 
     setStatus("loading");
 
-    fetch(`/api/vehicles?pickup=${pickup}&return=${returnD}`, {
+    const categoryParam = category ? `&category=${encodeURIComponent(category)}` : "";
+
+    fetch(`/api/vehicles?pickup=${pickup}&return=${returnD}${categoryParam}`, {
       signal: abortRef.current.signal,
     })
       .then((res) => {
@@ -47,7 +50,6 @@ export function useAvailableVehicles(
       })
       .catch((err) => {
         if (err.name === "AbortError") return;
-        // Graceful degradation: show mocked vehicles if API is unreachable
         setVehicles(MOCKED_VEHICLES);
         setStatus("fallback");
       });
@@ -62,7 +64,8 @@ export function useAvailableVehicles(
     fetchVehicles(pickupDate, returnDate);
 
     return () => abortRef.current?.abort();
-  }, [pickupDate, returnDate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupDate, returnDate, category]);
 
   return {
     vehicles,
