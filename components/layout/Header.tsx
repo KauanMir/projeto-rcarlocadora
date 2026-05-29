@@ -57,7 +57,7 @@ export function Header() {
             href="#reserva"
             className={cn(
               buttonVariants({ size: "default" }),
-              "bg-white text-black hover:bg-white/90 active:scale-[0.97] font-semibold tracking-[0.06em] rounded-sm px-6 transition-all"
+              "bg-[#ffb800] hover:bg-[#e0a200] text-black active:scale-[0.97] font-semibold tracking-[0.06em] rounded-sm px-6 transition-all"
             )}
           >
             Reserve Agora
@@ -104,7 +104,7 @@ export function Header() {
             href="#reserva"
             className={cn(
               buttonVariants({ size: "default" }),
-              "bg-white text-black hover:bg-white/90 font-semibold tracking-wide rounded-sm mt-2"
+              "bg-[#ffb800] hover:bg-[#e0a200] text-black font-semibold tracking-wide rounded-sm mt-2"
             )}
           >
             Reserve Agora

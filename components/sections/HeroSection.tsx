@@ -113,7 +113,7 @@ export function HeroSection() {
                 href="#frota"
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  "bg-white text-black hover:bg-white/90 active:scale-[0.98] font-semibold tracking-wide rounded-sm px-8 h-12 transition-all"
+                  "bg-[#ffb800] hover:bg-[#e0a200] text-black active:scale-[0.98] font-semibold tracking-wide rounded-sm px-8 h-12 transition-all"
                 )}
               >
                 Ver Frota
@@ -207,7 +207,7 @@ export function HeroSection() {
 
                 <button
                   onClick={handleSearch}
-                  className="w-full bg-white text-black hover:bg-white/90 active:scale-[0.98] font-bold tracking-wide rounded-sm h-12 mt-1 text-sm transition-all"
+                  className="w-full bg-[#ffb800] hover:bg-[#e0a200] text-black active:scale-[0.98] font-bold tracking-wide rounded-sm h-12 mt-1 text-sm transition-all"
                 >
                   Buscar Veículos
                 </button>

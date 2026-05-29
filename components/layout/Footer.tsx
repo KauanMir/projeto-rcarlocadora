@@ -77,8 +77,12 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               <li className="text-white/50 text-sm flex items-start gap-2">
-                <span aria-hidden className="mt-0.5">📍</span>
-                Gama-DF
+                <span aria-hidden className="mt-0.5 shrink-0">📍</span>
+                <span>
+                  Q 36 Comércio Local A/E
+                  <br />
+                  Setor Leste — Gama, DF
+                </span>
               </li>
               <li>
                 <a

@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { VehiclesSection } from "@/components/sections/VehiclesSection";
+import { LocalizacaoSection } from "@/components/sections/LocalizacaoSection";
 import { VehicleModal } from "@/components/booking/VehicleModal";
 
 export default function HomePage() {
@@ -11,6 +12,7 @@ export default function HomePage() {
       <main className="flex-1">
         <HeroSection />
         <VehiclesSection />
+        <LocalizacaoSection />
       </main>
       <Footer />
       <VehicleModal />
