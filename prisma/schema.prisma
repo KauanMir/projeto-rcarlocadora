@@ -51,6 +51,13 @@ enum LeadStatus {
   LOST
 }
 
+enum RentalStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 // ─────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────
@@ -77,6 +84,7 @@ model Vehicle {
   updatedAt    DateTime            @updatedAt
 
   reservations Reservation[]
+  rentals      Rental[]
 
   @@index([category])
   @@index([available])
@@ -101,6 +109,7 @@ model Reservation {
 
   vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
   lead          Lead?
+  rental        Rental?
 
   @@index([vehicleId])
   @@index([pickupDate, returnDate])
@@ -121,6 +130,28 @@ model Lead {
 
   @@index([status])
   @@index([createdAt])
+}
+
+model Rental {
+  id             String       @id @default(cuid())
+  reservationId  String       @unique
+  vehicleId      String
+  customerName   String
+  customerPhone  String
+  pickupDate     DateTime
+  returnDate     DateTime
+  pickupMileage  Int?
+  returnMileage  Int?
+  status         RentalStatus @default(SCHEDULED)
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  reservation    Reservation  @relation(fields: [reservationId], references: [id])
+  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id])
+
+  @@index([status])
+  @@index([vehicleId])
 }
 
 model Addon {

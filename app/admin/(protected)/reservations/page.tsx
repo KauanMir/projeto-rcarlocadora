@@ -5,12 +5,15 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Reservas" };
 
 export default async function ReservationsPage() {
-  const rows = await prisma.reservation.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      vehicle: { select: { name: true, brand: true, model: true } },
-    },
-  });
+  const [rows, rentalRows] = await Promise.all([
+    prisma.reservation.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        vehicle: { select: { name: true, brand: true, model: true } },
+      },
+    }),
+    prisma.rental.findMany({ select: { reservationId: true } }),
+  ]);
 
   const reservations = rows.map((r) => ({
     id: r.id,
@@ -59,7 +62,10 @@ export default async function ReservationsPage() {
         ))}
       </div>
 
-      <ReservationsClient reservations={reservations} />
+      <ReservationsClient
+        reservations={reservations}
+        rentalReservationIds={rentalRows.map((r) => r.reservationId).filter(Boolean) as string[]}
+      />
     </div>
   );
 }

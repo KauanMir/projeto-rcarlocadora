@@ -162,7 +162,7 @@ export default async function DashboardPage() {
   const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
   const twelveMonthsAgo = new Date(year, month - 11, 1);
 
-  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw, leadGroups] =
+  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw, leadGroups, activeRentalsCount] =
     await Promise.all([
       prisma.reservation.findMany({
         where: { createdAt: { gte: twelveMonthsAgo } },
@@ -210,6 +210,7 @@ export default async function DashboardPage() {
         by: ["status"],
         _count: { status: true },
       }),
+      prisma.rental.count({ where: { status: "ACTIVE" } }),
     ]);
 
   // ── KPI calculations ─────────────────────────────────────
@@ -327,7 +328,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-8">
         <KpiCard
           icon="📋"
           label="Reservas do mês"
@@ -357,6 +358,12 @@ export default async function DashboardPage() {
           label="Ocupação"
           value={`${occupancyRate}%`}
           sub="veículos com reserva"
+        />
+        <KpiCard
+          icon="🔑"
+          label="Locações ativas"
+          value={activeRentalsCount}
+          sub="veículos na rua"
         />
       </div>
 

@@ -21,8 +21,8 @@ export default async function CalendarPage({
   const firstDay = new Date(Date.UTC(year, month - 1, 1, 12, 0, 0));
   const lastDay  = new Date(Date.UTC(year, month - 1, daysInMonth, 12, 0, 0));
 
-  // Fetch all non-cancelled reservations overlapping this month
-  const [reservationRows, vehicleRows] = await Promise.all([
+  // Fetch all non-cancelled reservations overlapping this month + active rentals
+  const [reservationRows, vehicleRows, activeRentalRows] = await Promise.all([
     prisma.reservation.findMany({
       where: {
         status: { not: "CANCELLED" },
@@ -42,7 +42,13 @@ export default async function CalendarPage({
         available: true,
       },
     }),
+    prisma.rental.findMany({
+      where: { status: "ACTIVE" },
+      select: { reservationId: true },
+    }),
   ]);
+
+  const activeRentalSet = new Set(activeRentalRows.map((r) => r.reservationId));
 
   // Build per-vehicle reservation lists
   const reservationsByVehicle = new Map<string, typeof reservationRows>(
@@ -73,6 +79,7 @@ export default async function CalendarPage({
       status: r.status as string,
       notes: r.notes ?? null,
       createdAt: r.createdAt.toISOString(),
+      hasActiveRental: activeRentalSet.has(r.id),
     })),
   }));
 

@@ -24,6 +24,7 @@ interface CalendarReservation {
   status: string;
   notes: string | null;
   createdAt: string;
+  hasActiveRental: boolean;
 }
 
 interface CalendarVehicle {
@@ -321,6 +322,14 @@ function ReservationBar({
         {clippedRight && (
           <span className={`shrink-0 text-[8px] ${c.barText} opacity-60 pr-1 ml-auto`}>►</span>
         )}
+
+        {/* Active rental indicator */}
+        {reservation.hasActiveRental && (
+          <span className="absolute top-1.5 right-1.5 flex" aria-label="Locação ativa">
+            <span className="absolute w-2 h-2 rounded-full bg-emerald-400 opacity-70 animate-ping" />
+            <span className="relative w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 6px rgba(52,211,153,0.8)" }} />
+          </span>
+        )}
       </div>
 
       {/* Tooltip */}
@@ -560,6 +569,10 @@ export function CalendarClient({ vehicles, year, month }: CalendarClientProps) {
               </div>
             );
           })}
+          <div className="flex items-center gap-1.5 ml-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 5px rgba(52,211,153,0.7)" }} aria-hidden />
+            <span className="text-white/35 text-[10px] font-medium">Locação ativa</span>
+          </div>
           {todayIdx >= 0 && (
             <div className="flex items-center gap-1.5 ml-2">
               <span className="w-2.5 h-2.5 rounded-sm bg-blue-400/30 border border-blue-400/40" aria-hidden />

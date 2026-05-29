@@ -283,7 +283,13 @@ function ReservationModal({
 const FILTER_ALL = "TODOS";
 const FILTER_OPTIONS = [FILTER_ALL, ...STATUS_OPTIONS];
 
-export function ReservationsClient({ reservations: initial }: { reservations: Reservation[] }) {
+export function ReservationsClient({
+  reservations: initial,
+  rentalReservationIds: initialRentalIds = [],
+}: {
+  reservations: Reservation[];
+  rentalReservationIds?: string[];
+}) {
   const router = useRouter();
   const addToast = useToastStore((s) => s.add);
 
@@ -291,6 +297,31 @@ export function ReservationsClient({ reservations: initial }: { reservations: Re
   const [selected, setSelected]         = useState<Reservation | null>(null);
   const [filter, setFilter]             = useState(FILTER_ALL);
   const [updatingId, setUpdatingId]     = useState<string | null>(null);
+  const [rentalIds, setRentalIds]       = useState(() => new Set(initialRentalIds));
+  const [startingId, setStartingId]     = useState<string | null>(null);
+
+  async function handleStartRental(reservationId: string) {
+    setStartingId(reservationId);
+    try {
+      const res = await fetch("/api/admin/rentals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId }),
+      });
+      if (res.ok) {
+        setRentalIds((prev) => new Set([...prev, reservationId]));
+        addToast({ type: "success", title: "Locação agendada", message: "Acesse Locações para gerenciar." });
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        addToast({ type: "error", title: "Erro", message: (data as { error?: string }).error ?? "Tente novamente." });
+      }
+    } catch {
+      addToast({ type: "error", title: "Falha de conexão" });
+    } finally {
+      setStartingId(null);
+    }
+  }
 
   const filtered = filter === FILTER_ALL
     ? reservations
@@ -365,7 +396,7 @@ export function ReservationsClient({ reservations: initial }: { reservations: Re
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/[0.07]">
-                  {["Referência", "Cliente", "Veículo", "Período", "Total", "Status", ""].map((h) => (
+                  {["Referência", "Cliente", "Veículo", "Período", "Total", "Status", "", ""].map((h) => (
                     <th key={h} className="text-left text-white/25 text-[9px] tracking-[0.16em] uppercase font-semibold pb-3 pr-4 last:pr-0">
                       {h}
                     </th>
@@ -404,6 +435,24 @@ export function ReservationsClient({ reservations: initial }: { reservations: Re
                         Ver
                       </button>
                     </td>
+                    <td className="py-3.5 pl-2">
+                      {r.status === "CONFIRMED" && !rentalIds.has(r.id) && (
+                        <button
+                          onClick={() => handleStartRental(r.id)}
+                          disabled={startingId === r.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-500/30 text-emerald-400/70 hover:text-emerald-300 hover:border-emerald-500/50 hover:bg-emerald-500/[0.06] rounded-sm text-[10px] font-semibold tracking-wide uppercase transition-all active:scale-[0.97] disabled:opacity-40"
+                        >
+                          {startingId === r.id
+                            ? <span className="w-2.5 h-2.5 border border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin" />
+                            : <span aria-hidden>▶</span>
+                          }
+                          Locação
+                        </button>
+                      )}
+                      {r.status === "CONFIRMED" && rentalIds.has(r.id) && (
+                        <span className="text-emerald-400/50 text-[10px] font-semibold">✓ locação</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -439,13 +488,29 @@ export function ReservationsClient({ reservations: initial }: { reservations: Re
                   <span className="text-white font-bold text-sm">{formatPrice(r.totalPrice)}</span>
                 </div>
 
-                {/* Bottom: status select */}
-                <div className="pt-2.5 border-t border-white/[0.05]">
+                {/* Bottom: status select + start rental */}
+                <div className="pt-2.5 border-t border-white/[0.05] flex items-center justify-between gap-3">
                   <StatusSelect
                     status={r.status}
                     loading={updatingId === r.id}
                     onChange={(s) => handleStatusChange(r.id, s)}
                   />
+                  {r.status === "CONFIRMED" && !rentalIds.has(r.id) && (
+                    <button
+                      onClick={() => handleStartRental(r.id)}
+                      disabled={startingId === r.id}
+                      className="flex items-center gap-1 px-2.5 py-1 border border-emerald-500/30 text-emerald-400/70 hover:text-emerald-300 hover:border-emerald-500/50 rounded-sm text-[10px] font-semibold tracking-wide uppercase transition-all disabled:opacity-40"
+                    >
+                      {startingId === r.id
+                        ? <span className="w-2.5 h-2.5 border border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin" />
+                        : <span aria-hidden>▶</span>
+                      }
+                      Locação
+                    </button>
+                  )}
+                  {r.status === "CONFIRMED" && rentalIds.has(r.id) && (
+                    <span className="text-emerald-400/50 text-[10px] font-semibold">✓ locação</span>
+                  )}
                 </div>
               </div>
             ))}
