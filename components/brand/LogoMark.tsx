@@ -14,9 +14,9 @@ export function LogoMark({ size = 32 }: { size?: number }) {
       <img
         src="/logo.png"
         alt="RCAR"
-        width={size}
-        height={size}
-        className="object-contain rounded-sm shrink-0"
+        // Preserve aspect ratio: height fixed, width auto (logo is 4000×2500 — horizontal)
+        style={{ height: size, width: "auto", maxWidth: size * 5 }}
+        className="object-contain shrink-0"
         onError={() => setUseFallback(true)}
       />
     );

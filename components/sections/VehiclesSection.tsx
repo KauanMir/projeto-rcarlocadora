@@ -48,21 +48,31 @@ function VehicleCard({ vehicle, index }: { vehicle: Vehicle; index: number }) {
           style={{ background: BRAND_TINT[vehicle.brand] ?? "none" }}
         />
 
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.012] to-transparent" />
+        {/* Vehicle photo — shown when available */}
+        {vehicle.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={vehicle.image}
+            alt={`${vehicle.brand} ${vehicle.model}`}
+            className="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          /* Ghost model name fallback when no photo */
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden select-none pointer-events-none">
+            <span
+              className="text-white font-black leading-none whitespace-nowrap tracking-tighter"
+              style={{ fontSize: "clamp(72px, 12vw, 96px)", opacity: 0.04 }}
+            >
+              {vehicle.model.toUpperCase()}
+            </span>
+          </div>
+        )}
 
-        {/* Giant ghost model name — art direction element */}
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden select-none pointer-events-none">
-          <span
-            className="text-white font-black leading-none whitespace-nowrap tracking-tighter transition-all duration-700 group-hover:opacity-[0.065]"
-            style={{ fontSize: "clamp(72px, 12vw, 96px)", opacity: 0.04 }}
-          >
-            {vehicle.model.toUpperCase()}
-          </span>
-        </div>
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/60 via-transparent to-transparent pointer-events-none" />
 
         {/* Showroom floor reflection line */}
-        <div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent transition-opacity duration-300 group-hover:opacity-200" />
+        <div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent pointer-events-none" />
 
         {/* Tags */}
         <div className="absolute top-4 left-4 z-10 flex gap-1.5 flex-wrap">

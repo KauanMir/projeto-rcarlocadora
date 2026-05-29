@@ -134,12 +134,25 @@ function VehicleCard({
           onSelect(vehicle);
         }
       }}
-      className={`text-left border rounded-xl p-5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none ${
+      className={`text-left border rounded-xl overflow-hidden transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none ${
         isSelected
           ? "bg-white/10 border-white/40"
           : "bg-white/[0.02] border-white/[0.07] hover:border-white/25 hover:bg-white/[0.04]"
       }`}
     >
+      {/* Vehicle image */}
+      {vehicle.image && (
+        <div className="h-36 bg-[#0c0c0c] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={vehicle.image}
+            alt={`${vehicle.brand} ${vehicle.model}`}
+            className="w-full h-full object-contain p-3"
+          />
+        </div>
+      )}
+
+      <div className="p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-white font-bold text-lg leading-none">{vehicle.model}</div>
@@ -177,6 +190,7 @@ function VehicleCard({
           ✓ Selecionado
         </motion.div>
       )}
+      </div>
     </motion.button>
   );
 }
