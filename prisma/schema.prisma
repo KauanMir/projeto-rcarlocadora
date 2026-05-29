@@ -43,6 +43,14 @@ enum ReservationStatus {
   FINISHED
 }
 
+enum LeadStatus {
+  NEW
+  CONTACTED
+  NEGOTIATING
+  WON
+  LOST
+}
+
 // ─────────────────────────────────────────────────────────────
 // Models
 // ─────────────────────────────────────────────────────────────
@@ -92,10 +100,27 @@ model Reservation {
   updatedAt     DateTime          @updatedAt
 
   vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
+  lead          Lead?
 
   @@index([vehicleId])
   @@index([pickupDate, returnDate])
   @@index([status])
+}
+
+model Lead {
+  id            String      @id @default(cuid())
+  name          String
+  phone         String
+  reservationId String?     @unique
+  status        LeadStatus  @default(NEW)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model Addon {

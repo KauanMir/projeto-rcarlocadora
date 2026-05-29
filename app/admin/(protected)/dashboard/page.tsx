@@ -162,7 +162,7 @@ export default async function DashboardPage() {
   const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
   const twelveMonthsAgo = new Date(year, month - 11, 1);
 
-  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw] =
+  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw, leadGroups] =
     await Promise.all([
       prisma.reservation.findMany({
         where: { createdAt: { gte: twelveMonthsAgo } },
@@ -206,6 +206,10 @@ export default async function DashboardPage() {
           vehicle: { select: { brand: true, model: true } },
         },
       }),
+      prisma.lead.groupBy({
+        by: ["status"],
+        _count: { status: true },
+      }),
     ]);
 
   // ── KPI calculations ─────────────────────────────────────
@@ -235,6 +239,12 @@ export default async function DashboardPage() {
     totalVehicles > 0
       ? Math.round((activeVehicleIds.size / totalVehicles) * 100)
       : 0;
+
+  // ── Lead counts ─────────────────────────────────────────
+
+  const leadCounts: Record<string, number> = {};
+  for (const g of leadGroups) leadCounts[g.status] = g._count.status;
+  const totalLeads = Object.values(leadCounts).reduce((s, n) => s + n, 0);
 
   // ── Chart data (last 12 months) ──────────────────────────
 
@@ -349,6 +359,38 @@ export default async function DashboardPage() {
           sub="veículos com reserva"
         />
       </div>
+
+      {/* Leads summary */}
+      {totalLeads > 0 && (
+        <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl px-6 py-4 mb-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <span className="text-white/20 text-[9px] tracking-[0.18em] uppercase shrink-0">
+            Leads
+          </span>
+          {(
+            [
+              { s: "NEW",         label: "Novos",       dot: "bg-violet-400"  },
+              { s: "CONTACTED",   label: "Contatados",  dot: "bg-blue-400"    },
+              { s: "NEGOTIATING", label: "Negociando",  dot: "bg-amber-400"   },
+              { s: "WON",         label: "Ganhos",      dot: "bg-emerald-400" },
+              { s: "LOST",        label: "Perdidos",    dot: "bg-white/30"    },
+            ] as const
+          ).map(({ s, label, dot }) =>
+            (leadCounts[s] ?? 0) > 0 ? (
+              <div key={s} className="flex items-center gap-2 shrink-0">
+                <span className={`w-2 h-2 rounded-full ${dot}`} aria-hidden />
+                <span className="text-white/35 text-xs">{label}</span>
+                <span className="text-white font-bold text-sm">{leadCounts[s]}</span>
+              </div>
+            ) : null
+          )}
+          <a
+            href="/admin/leads"
+            className="ml-auto text-white/25 text-xs hover:text-white/60 transition-colors shrink-0"
+          >
+            Ver todos →
+          </a>
+        </div>
+      )}
 
       {/* Charts */}
       <DashboardCharts monthlyStats={monthlyStats} />

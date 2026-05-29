@@ -55,7 +55,7 @@ export async function createReservation(input: CreateReservationRequest) {
 
     if (conflict) throw new VehicleUnavailableError();
 
-    return tx.reservation.create({
+    const reservation = await tx.reservation.create({
       data: {
         vehicleId: input.vehicleId,
         pickupDate,
@@ -78,5 +78,16 @@ export async function createReservation(input: CreateReservationRequest) {
         createdAt: true,
       },
     });
+
+    await tx.lead.create({
+      data: {
+        name: input.customerName,
+        phone: input.customerPhone,
+        reservationId: reservation.id,
+        status: "NEW",
+      },
+    });
+
+    return reservation;
   });
 }
