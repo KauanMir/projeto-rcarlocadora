@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
+  // AVISO: este script apaga TODOS os dados antes de inserir.
+  // Execute apenas uma vez, em banco vazio, antes de receber reservas reais.
   console.log("🌱 RCAR — populando frota real...\n");
 
   // ── Limpar em ordem de FK ────────────────────────────────────

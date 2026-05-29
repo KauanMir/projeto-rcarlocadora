@@ -14,11 +14,8 @@ export function Footer() {
 
           {/* ── Brand ── */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <LogoMark size={32} />
-              <span className="text-white font-bold text-xl tracking-widest uppercase">
-                {SITE_NAME}
-              </span>
+            <div className="mb-4">
+              <LogoMark size={44} />
             </div>
             <p className="text-white/50 text-sm leading-relaxed max-w-xs">
               Aluguel de veículos em Gama-DF. Reservas rápidas e atendimento direto pelo WhatsApp.

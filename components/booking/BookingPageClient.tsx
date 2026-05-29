@@ -28,6 +28,7 @@ export function BookingPageClient() {
     step, setStep,
     pickupDate, returnDate, rentalDays,
     vehicle, insurance, priceBreakdown,
+    serverPricing, serverPricingLoading,
   } = useBookingStore();
 
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -146,18 +147,22 @@ export function BookingPageClient() {
             >
               <div>
                 <div className="text-white/30 text-[9px] tracking-[0.16em] uppercase">Total estimado</div>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={priceBreakdown.total}
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: 0.16 }}
-                    className="text-white font-black text-xl leading-none mt-0.5"
-                  >
-                    {formatPrice(priceBreakdown.total)}
-                  </motion.div>
-                </AnimatePresence>
+                {serverPricingLoading ? (
+                  <div className="text-white/25 text-sm leading-none mt-1">Calculando...</div>
+                ) : (
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={serverPricing?.total ?? priceBreakdown.total}
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.16 }}
+                      className="text-white font-black text-xl leading-none mt-0.5"
+                    >
+                      {formatPrice(serverPricing?.total ?? priceBreakdown.total)}
+                    </motion.div>
+                  </AnimatePresence>
+                )}
               </div>
               {vehicle && (
                 <div className="text-white/20 text-xs">

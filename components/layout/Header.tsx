@@ -31,13 +31,10 @@ export function Header() {
       style={scrolled ? { background: "rgba(8,8,8,0.94)", backdropFilter: "blur(20px)" } : {}}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center group">
           <div className="transition-transform duration-200 group-hover:scale-95">
-            <LogoMark size={32} />
+            <LogoMark size={48} />
           </div>
-          <span className="text-white font-bold text-lg tracking-[0.22em] uppercase">
-            {SITE_NAME}
-          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
