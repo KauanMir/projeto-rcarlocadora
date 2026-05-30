@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/admin-auth";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminTopbar } from "@/components/admin/AdminTopbar";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,9 +14,13 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
   return (
     <div className="min-h-screen text-white" style={{ background: "var(--ink)" }}>
       <AdminSidebar />
-      <main className="lg:pl-56 min-h-screen pb-24 lg:pb-0">
-        {children}
-      </main>
+      {/* 232px matches design export sidebar width */}
+      <div className="lg:pl-[232px] min-h-screen pb-24 lg:pb-0">
+        <AdminTopbar />
+        <main style={{ padding: 32 }}>
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { ReservationsClient } from "@/components/admin/ReservationsClient";
-import { AdminPageHeader, AdminKpiCard } from "@/components/admin/AdminPageHeader";
-import { formatPrice } from "@/utils/format";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Reservas" };
@@ -32,30 +30,12 @@ export default async function ReservationsPage() {
     createdAt: r.createdAt.toISOString(),
   }));
 
-  const counts = {
-    total: reservations.length,
-    pending: reservations.filter((r) => r.status === "PENDING").length,
-    confirmed: reservations.filter((r) => r.status === "CONFIRMED").length,
-    revenue: reservations.filter((r) => r.status !== "CANCELLED").reduce((sum, r) => sum + r.totalPrice, 0),
-  };
-
   return (
-    <div style={{ padding: "28px 28px 40px" }}>
-      <AdminPageHeader
-        title="Reservas"
-        subtitle="Gerencie e atualize o status das reservas."
-      />
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
-        <AdminKpiCard label="Total" value={counts.total} />
-        <AdminKpiCard label="Pendentes" value={counts.pending} accent="#fbbf24" />
-        <AdminKpiCard label="Confirmadas" value={counts.confirmed} accent="#60a5fa" />
-        <AdminKpiCard label="Receita total" value={formatPrice(counts.revenue)} accent="var(--gold)" />
-      </div>
-
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
       <ReservationsClient
         reservations={reservations}
         rentalReservationIds={rentalRows.map((r) => r.reservationId).filter(Boolean) as string[]}
+        totalCount={reservations.length}
       />
     </div>
   );

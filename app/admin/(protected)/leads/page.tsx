@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { LeadsClient } from "@/components/admin/LeadsClient";
-import { AdminPageHeader, AdminKpiCard } from "@/components/admin/AdminPageHeader";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Leads" };
@@ -32,31 +31,8 @@ export default async function LeadsPage() {
       : null,
   }));
 
-  const total = leads.length;
-  const newCount = leads.filter((l) => l.status === "NEW").length;
-  const wonCount = leads.filter((l) => l.status === "WON").length;
-  const negotiating = leads.filter((l) => l.status === "NEGOTIATING").length;
-
   return (
-    <div style={{ padding: "28px 28px 40px" }}>
-      <AdminPageHeader
-        title="Leads"
-        subtitle="Pipeline de vendas e acompanhamento de clientes."
-        stats={[
-          { label: "Total", value: total },
-          { label: "Novos", value: newCount, color: "#a78bfa" },
-          { label: "Negociando", value: negotiating, color: "#fbbf24" },
-          { label: "Ganhos", value: wonCount, color: "#34d399" },
-        ]}
-      />
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
-        <AdminKpiCard label="Total de leads" value={total} />
-        <AdminKpiCard label="Novos" value={newCount} accent="#a78bfa" />
-        <AdminKpiCard label="Negociando" value={negotiating} accent="#fbbf24" />
-        <AdminKpiCard label="Ganhos" value={wonCount} accent="#34d399" />
-      </div>
-
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
       <LeadsClient leads={leads} />
     </div>
   );

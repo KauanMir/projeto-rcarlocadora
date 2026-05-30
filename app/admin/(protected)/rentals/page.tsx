@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { RentalsClient } from "@/components/admin/RentalsClient";
-import { AdminPageHeader, AdminKpiCard } from "@/components/admin/AdminPageHeader";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Locações" };
@@ -40,22 +39,15 @@ export default async function RentalsPage() {
 
   const activeCount    = rentals.filter((r) => r.status === "ACTIVE").length;
   const scheduledCount = rentals.filter((r) => r.status === "SCHEDULED").length;
-  const completedCount = rentals.filter((r) => r.status === "COMPLETED").length;
 
   return (
-    <div style={{ padding: "28px 28px 40px" }}>
-      <AdminPageHeader
-        title="Locações"
-        subtitle="Gerencie o ciclo de vida de cada locação ativa."
-      />
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
-        <AdminKpiCard label="Total" value={rentals.length} />
-        <AdminKpiCard label="Ativas" value={activeCount} accent="#34d399" />
-        <AdminKpiCard label="Agendadas" value={scheduledCount} accent="#38bdf8" />
-        <AdminKpiCard label="Concluídas" value={completedCount} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      <div>
+        <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: "var(--font-display)" }}>Locações ativas</h1>
+        <p style={{ color: "var(--d-2)", fontSize: 14, marginTop: 4 }}>
+          {activeCount} ativa{activeCount !== 1 ? "s" : ""} · {scheduledCount} agendada{scheduledCount !== 1 ? "s" : ""} — veículos na rua
+        </p>
       </div>
-
       <RentalsClient rentals={rentals} />
     </div>
   );

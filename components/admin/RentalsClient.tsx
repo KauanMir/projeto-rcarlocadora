@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Key, Check } from "lucide-react";
 import { useToastStore } from "@/store/toastStore";
 import { formatDateShort } from "@/utils/format";
 import { ChecklistModal, type ChecklistData } from "./ChecklistModal";
@@ -30,74 +31,72 @@ export interface RentalRow {
 
 // ─── Status config ────────────────────────────────────────────
 
-const STATUS_CFG: Record<
-  RentalStatus,
-  { label: string; badge: string; dot: string }
-> = {
-  SCHEDULED: { label: "Agendada",  badge: "bg-sky-500/15 text-sky-300 border-sky-500/30",           dot: "bg-sky-400"     },
-  ACTIVE:    { label: "Ativa",     badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", dot: "bg-emerald-400" },
-  COMPLETED: { label: "Concluída", badge: "bg-white/[0.06] text-white/40 border-white/[0.1]",         dot: "bg-white/30"    },
-  CANCELLED: { label: "Cancelada", badge: "bg-red-500/10 text-red-400/70 border-red-500/20",          dot: "bg-red-400/50"  },
+const STATUS_CFG: Record<RentalStatus, { label: string; badge: string; dot: string }> = {
+  SCHEDULED: { label: "Agendada",  badge: "bg-sky-500/15 text-sky-300 border-sky-500/30",              dot: "bg-sky-400"     },
+  ACTIVE:    { label: "Ativa",     badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",  dot: "bg-emerald-400" },
+  COMPLETED: { label: "Concluída", badge: "bg-white/[0.06] text-white/40 border-white/[0.1]",          dot: "bg-white/30"    },
+  CANCELLED: { label: "Cancelada", badge: "bg-red-500/10 text-red-400/70 border-red-500/20",           dot: "bg-red-400/50"  },
 };
-
 function scfg(s: string) { return STATUS_CFG[s as RentalStatus] ?? STATUS_CFG.SCHEDULED; }
+
+// ─── Modal helpers ────────────────────────────────────────────
+
+const modalOverlay: React.CSSProperties = {
+  position: "fixed", inset: 0, zIndex: 50,
+  display: "flex", alignItems: "flex-end",
+  justifyContent: "center",
+};
+const modalBox: React.CSSProperties = {
+  position: "relative",
+  width: "100%",
+  maxWidth: 420,
+  background: "var(--ink-card)",
+  border: "1px solid var(--ink-line)",
+  borderRadius: "var(--r-md)",
+  overflow: "hidden",
+};
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  height: 40,
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid var(--ink-line-2)",
+  borderRadius: "var(--r-sm)",
+  padding: "0 14px",
+  color: "#fff",
+  fontSize: 13.5,
+  outline: "none",
+  fontFamily: "var(--font-body)",
+  colorScheme: "dark",
+};
 
 // ─── Activate modal ───────────────────────────────────────────
 
-function ActivateModal({
-  rental,
-  onClose,
-  onConfirm,
-  saving,
-}: {
-  rental: RentalRow;
-  onClose: () => void;
-  onConfirm: (pickupMileage: number | null) => Promise<void>;
-  saving: boolean;
+function ActivateModal({ rental, onClose, onConfirm, saving }: {
+  rental: RentalRow; onClose: () => void;
+  onConfirm: (pickupMileage: number | null) => Promise<void>; saving: boolean;
 }) {
   const [km, setKm] = useState("");
-
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} aria-hidden />
-      <motion.div
-        role="dialog" aria-modal className="relative w-full sm:max-w-sm bg-[#0c0c0c] border border-white/[0.08] sm:rounded-2xl z-10 flex flex-col overflow-hidden"
-        initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
-        transition={{ type: "spring", damping: 30, stiffness: 340 }}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
+    <motion.div style={modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="sm:items-center sm:p-4">
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }} onClick={onClose} aria-hidden />
+      <motion.div role="dialog" aria-modal style={modalBox} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} transition={{ type: "spring", damping: 30, stiffness: 340 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", borderBottom: "1px solid var(--ink-line)" }}>
           <div>
-            <div className="text-white font-bold">Iniciar locação</div>
-            <div className="text-white/30 text-xs mt-0.5">{rental.customerName} · {rental.vehicleBrand} {rental.vehicleModel}</div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>Iniciar locação</div>
+            <div style={{ color: "var(--d-3)", fontSize: 12, marginTop: 2 }}>{rental.customerName} · {rental.vehicleBrand} {rental.vehicleModel}</div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-colors" aria-label="Fechar">✕</button>
+          <button onClick={onClose} style={{ color: "var(--d-2)", background: "none", border: "none", cursor: "pointer", fontSize: 18, padding: 4 }}>✕</button>
         </div>
-        <div className="p-6 flex flex-col gap-4">
+        <div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
-            <label className="text-white/30 text-[10px] tracking-[0.16em] uppercase block mb-2">
-              KM de saída <span className="text-white/15 font-normal normal-case tracking-normal">(opcional)</span>
+            <label style={{ color: "var(--d-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", display: "block", marginBottom: 8, fontFamily: "var(--font-body)" }}>
+              KM de saída <span style={{ color: "var(--d-4)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(opcional)</span>
             </label>
-            <input
-              type="number"
-              min={0}
-              value={km}
-              onChange={(e) => setKm(e.target.value)}
-              placeholder="Ex: 45200"
-              className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-white/80 text-sm placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
-            />
+            <input type="number" min={0} value={km} onChange={(e) => setKm(e.target.value)} placeholder="Ex: 45200" style={inputStyle} />
           </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button onClick={onClose} className="h-9 px-5 rounded-lg border border-white/10 text-white/40 hover:text-white hover:border-white/25 text-sm transition-all">
-              Cancelar
-            </button>
-            <button
-              onClick={() => onConfirm(km ? parseInt(km) : null)}
-              disabled={saving}
-              className="h-9 px-5 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white text-sm font-semibold transition-all disabled:opacity-40 flex items-center gap-2"
-            >
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button onClick={onClose} style={{ height: 36, padding: "0 16px", border: "1px solid var(--ink-line-2)", borderRadius: "var(--r-sm)", color: "var(--d-2)", fontSize: 13, background: "transparent", cursor: "pointer" }}>Cancelar</button>
+            <button onClick={() => onConfirm(km ? parseInt(km) : null)} disabled={saving} style={{ height: 36, padding: "0 16px", border: "none", borderRadius: "var(--r-sm)", background: "#059669", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.5 : 1, display: "flex", alignItems: "center", gap: 8 }}>
               {saving && <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />}
               Iniciar locação
             </button>
@@ -110,77 +109,43 @@ function ActivateModal({
 
 // ─── Finalize modal ───────────────────────────────────────────
 
-function FinalizeModal({
-  rental,
-  onClose,
-  onConfirm,
-  saving,
-}: {
-  rental: RentalRow;
-  onClose: () => void;
-  onConfirm: (returnMileage: number | null, notes: string) => Promise<void>;
-  saving: boolean;
+function FinalizeModal({ rental, onClose, onConfirm, saving }: {
+  rental: RentalRow; onClose: () => void;
+  onConfirm: (returnMileage: number | null, notes: string) => Promise<void>; saving: boolean;
 }) {
-  const [km, setKm] = useState("");
+  const [km,    setKm]    = useState("");
   const [notes, setNotes] = useState(rental.notes ?? "");
-
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} aria-hidden />
-      <motion.div
-        role="dialog" aria-modal className="relative w-full sm:max-w-sm bg-[#0c0c0c] border border-white/[0.08] sm:rounded-2xl z-10 flex flex-col overflow-hidden"
-        initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
-        transition={{ type: "spring", damping: 30, stiffness: 340 }}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
+    <motion.div style={modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="sm:items-center sm:p-4">
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }} onClick={onClose} aria-hidden />
+      <motion.div role="dialog" aria-modal style={modalBox} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} transition={{ type: "spring", damping: 30, stiffness: 340 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", borderBottom: "1px solid var(--ink-line)" }}>
           <div>
-            <div className="text-white font-bold">Finalizar locação</div>
-            <div className="text-white/30 text-xs mt-0.5">{rental.customerName} · {rental.vehicleBrand} {rental.vehicleModel}</div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>Finalizar locação</div>
+            <div style={{ color: "var(--d-3)", fontSize: 12, marginTop: 2 }}>{rental.customerName} · {rental.vehicleBrand} {rental.vehicleModel}</div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-colors" aria-label="Fechar">✕</button>
+          <button onClick={onClose} style={{ color: "var(--d-2)", background: "none", border: "none", cursor: "pointer", fontSize: 18, padding: 4 }}>✕</button>
         </div>
-        <div className="p-6 flex flex-col gap-4">
+        <div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
           {rental.pickupMileage !== null && (
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 flex items-center justify-between">
-              <span className="text-white/30 text-xs">KM de saída</span>
-              <span className="text-white/60 text-sm font-semibold">{rental.pickupMileage?.toLocaleString("pt-BR")} km</span>
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--ink-line)", borderRadius: "var(--r-sm)", padding: "10px 14px", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--d-3)", fontSize: 12 }}>KM de saída</span>
+              <span style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{rental.pickupMileage?.toLocaleString("pt-BR")} km</span>
             </div>
           )}
           <div>
-            <label className="text-white/30 text-[10px] tracking-[0.16em] uppercase block mb-2">
-              KM de retorno <span className="text-white/15 font-normal normal-case tracking-normal">(opcional)</span>
+            <label style={{ color: "var(--d-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", display: "block", marginBottom: 8, fontFamily: "var(--font-body)" }}>
+              KM de retorno <span style={{ color: "var(--d-4)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(opcional)</span>
             </label>
-            <input
-              type="number"
-              min={rental.pickupMileage ?? 0}
-              value={km}
-              onChange={(e) => setKm(e.target.value)}
-              placeholder="Ex: 46500"
-              className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-white/80 text-sm placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
-            />
+            <input type="number" min={rental.pickupMileage ?? 0} value={km} onChange={(e) => setKm(e.target.value)} placeholder="Ex: 46500" style={inputStyle} />
           </div>
           <div>
-            <label className="text-white/30 text-[10px] tracking-[0.16em] uppercase block mb-2">Observações</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Condições do veículo, ocorrências…"
-              rows={3}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 text-sm placeholder:text-white/20 resize-none focus:outline-none focus:border-white/20 transition-colors"
-            />
+            <label style={{ color: "var(--d-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", display: "block", marginBottom: 8, fontFamily: "var(--font-body)" }}>Observações</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Condições do veículo, ocorrências…" rows={3} style={{ ...inputStyle, height: "auto", padding: "10px 14px", resize: "none" }} />
           </div>
-          <div className="flex gap-3 justify-end pt-1">
-            <button onClick={onClose} className="h-9 px-5 rounded-lg border border-white/10 text-white/40 hover:text-white hover:border-white/25 text-sm transition-all">
-              Cancelar
-            </button>
-            <button
-              onClick={() => onConfirm(km ? parseInt(km) : null, notes)}
-              disabled={saving}
-              className="h-9 px-5 rounded-lg bg-white/10 hover:bg-white/[0.15] text-white text-sm font-semibold transition-all disabled:opacity-40 flex items-center gap-2"
-            >
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button onClick={onClose} style={{ height: 36, padding: "0 16px", border: "1px solid var(--ink-line-2)", borderRadius: "var(--r-sm)", color: "var(--d-2)", fontSize: 13, background: "transparent", cursor: "pointer" }}>Cancelar</button>
+            <button onClick={() => onConfirm(km ? parseInt(km) : null, notes)} disabled={saving} style={{ height: 36, padding: "0 16px", border: "none", borderRadius: "var(--r-sm)", background: "rgba(255,255,255,0.1)", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.5 : 1, display: "flex", alignItems: "center", gap: 8 }}>
               {saving && <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />}
               Finalizar locação
             </button>
@@ -191,44 +156,21 @@ function FinalizeModal({
   );
 }
 
-// ─── Cancel confirm modal ─────────────────────────────────────
+// ─── Cancel modal ─────────────────────────────────────────────
 
-function CancelModal({
-  rental,
-  onClose,
-  onConfirm,
-  saving,
-}: {
-  rental: RentalRow;
-  onClose: () => void;
-  onConfirm: () => Promise<void>;
-  saving: boolean;
+function CancelModal({ rental, onClose, onConfirm, saving }: {
+  rental: RentalRow; onClose: () => void; onConfirm: () => Promise<void>; saving: boolean;
 }) {
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} aria-hidden />
-      <motion.div
-        role="dialog" aria-modal className="relative w-full sm:max-w-sm bg-[#0c0c0c] border border-white/[0.08] sm:rounded-2xl z-10 overflow-hidden"
-        initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
-        transition={{ type: "spring", damping: 30, stiffness: 340 }}
-      >
-        <div className="p-6">
-          <div className="text-white font-bold mb-1">Cancelar locação?</div>
-          <p className="text-white/40 text-sm">
-            {rental.customerName} · {rental.vehicleBrand} {rental.vehicleModel}
-          </p>
-          <div className="flex gap-3 justify-end mt-6">
-            <button onClick={onClose} className="h-9 px-5 rounded-lg border border-white/10 text-white/40 hover:text-white hover:border-white/25 text-sm transition-all">
-              Voltar
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={saving}
-              className="h-9 px-5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white text-sm font-semibold transition-all disabled:opacity-40 flex items-center gap-2"
-            >
+    <motion.div style={modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="sm:items-center sm:p-4">
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }} onClick={onClose} aria-hidden />
+      <motion.div role="dialog" aria-modal style={modalBox} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} transition={{ type: "spring", damping: 30, stiffness: 340 }}>
+        <div style={{ padding: "22px 22px" }}>
+          <div style={{ color: "#fff", fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Cancelar locação?</div>
+          <p style={{ color: "var(--d-2)", fontSize: 13 }}>{rental.customerName} · {rental.vehicleBrand} {rental.vehicleModel}</p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 22 }}>
+            <button onClick={onClose} style={{ height: 36, padding: "0 16px", border: "1px solid var(--ink-line-2)", borderRadius: "var(--r-sm)", color: "var(--d-2)", fontSize: 13, background: "transparent", cursor: "pointer" }}>Voltar</button>
+            <button onClick={onConfirm} disabled={saving} style={{ height: 36, padding: "0 16px", border: "none", borderRadius: "var(--r-sm)", background: "#dc2626", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: saving ? 0.5 : 1, display: "flex", alignItems: "center", gap: 8 }}>
               {saving && <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" />}
               Confirmar cancelamento
             </button>
@@ -239,38 +181,7 @@ function CancelModal({
   );
 }
 
-// ─── Action button ────────────────────────────────────────────
-
-function ActionBtn({
-  label,
-  onClick,
-  variant = "default",
-  disabled,
-}: {
-  label: string;
-  onClick: () => void;
-  variant?: "green" | "red" | "default";
-  disabled?: boolean;
-}) {
-  const cls =
-    variant === "green"
-      ? "border-emerald-500/30 text-emerald-400/80 hover:text-emerald-300 hover:border-emerald-500/50 hover:bg-emerald-500/[0.07]"
-      : variant === "red"
-      ? "border-red-500/20 text-red-400/60 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/[0.05]"
-      : "border-white/[0.08] text-white/35 hover:text-white hover:border-white/25 hover:bg-white/[0.04]";
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`h-7 px-3 rounded-md border text-[10px] font-semibold uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-30 ${cls}`}
-    >
-      {label}
-    </button>
-  );
-}
-
-// ─── Status filter tabs ───────────────────────────────────────
+// ─── Filter ───────────────────────────────────────────────────
 
 const FILTER_OPTIONS = ["TODOS", "SCHEDULED", "ACTIVE", "COMPLETED", "CANCELLED"] as const;
 type Filter = (typeof FILTER_OPTIONS)[number];
@@ -278,20 +189,17 @@ type Filter = (typeof FILTER_OPTIONS)[number];
 // ─── Main component ───────────────────────────────────────────
 
 export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
-  const router = useRouter();
+  const router   = useRouter();
   const addToast = useToastStore((s) => s.add);
 
-  const [rentals, setRentals] = useState(initial);
-  const [filter, setFilter] = useState<Filter>("TODOS");
-  const [actionId, setActionId] = useState<string | null>(null);
-  const [modal, setModal] = useState<{ type: "activate" | "finalize" | "cancel"; rental: RentalRow } | null>(null);
+  const [rentals,         setRentals]         = useState(initial);
+  const [filter,          setFilter]          = useState<Filter>("TODOS");
+  const [actionId,        setActionId]        = useState<string | null>(null);
+  const [modal,           setModal]           = useState<{ type: "activate" | "finalize" | "cancel"; rental: RentalRow } | null>(null);
   const [checklistRental, setChecklistRental] = useState<RentalRow | null>(null);
 
-  const filtered =
-    filter === "TODOS" ? rentals : rentals.filter((r) => r.status === filter);
-
-  const countFor = (f: Filter) =>
-    f === "TODOS" ? rentals.length : rentals.filter((r) => r.status === f).length;
+  const filtered = filter === "TODOS" ? rentals : rentals.filter((r) => r.status === filter);
+  const countFor = (f: Filter) => f === "TODOS" ? rentals.length : rentals.filter((r) => r.status === f).length;
 
   async function patch(id: string, data: Record<string, unknown>) {
     setActionId(id);
@@ -303,7 +211,7 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
       });
       if (res.ok) {
         const updated = await res.json();
-        setRentals((prev) => prev.map((r) => (r.id === id ? { ...r, ...updated } : r)));
+        setRentals((prev) => prev.map((r) => r.id === id ? { ...r, ...updated } : r));
         router.refresh();
         return true;
       }
@@ -319,55 +227,32 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
   }
 
   function handleChecklistCreated(rentalId: string, checklist: ChecklistData) {
-    setRentals((prev) =>
-      prev.map((r) =>
-        r.id === rentalId
-          ? { ...r, checklists: [...r.checklists.filter((c) => c.type !== checklist.type), checklist] }
-          : r
-      )
-    );
-    setChecklistRental((prev) =>
-      prev?.id === rentalId
-        ? { ...prev, checklists: [...prev.checklists.filter((c) => c.type !== checklist.type), checklist] }
-        : prev
-    );
+    setRentals((prev) => prev.map((r) => r.id === rentalId ? { ...r, checklists: [...r.checklists.filter((c) => c.type !== checklist.type), checklist] } : r));
+    setChecklistRental((prev) => prev?.id === rentalId ? { ...prev, checklists: [...prev.checklists.filter((c) => c.type !== checklist.type), checklist] } : prev);
   }
 
   async function handleActivate(pickupMileage: number | null) {
     if (!modal) return;
     const ok = await patch(modal.rental.id, { status: "ACTIVE", pickupMileage });
-    if (ok) {
-      addToast({ type: "success", title: "Locação iniciada", message: modal.rental.customerName });
-      setModal(null);
-    }
+    if (ok) { addToast({ type: "success", title: "Locação iniciada", message: modal.rental.customerName }); setModal(null); }
   }
 
   async function handleFinalize(returnMileage: number | null, notes: string) {
     if (!modal) return;
-    const ok = await patch(modal.rental.id, {
-      status: "COMPLETED",
-      returnMileage,
-      notes: notes || null,
-    });
-    if (ok) {
-      addToast({ type: "success", title: "Locação concluída", message: modal.rental.customerName });
-      setModal(null);
-    }
+    const ok = await patch(modal.rental.id, { status: "COMPLETED", returnMileage, notes: notes || null });
+    if (ok) { addToast({ type: "success", title: "Locação concluída", message: modal.rental.customerName }); setModal(null); }
   }
 
   async function handleCancel() {
     if (!modal) return;
     const ok = await patch(modal.rental.id, { status: "CANCELLED" });
-    if (ok) {
-      addToast({ type: "success", title: "Locação cancelada" });
-      setModal(null);
-    }
+    if (ok) { addToast({ type: "success", title: "Locação cancelada" }); setModal(null); }
   }
 
   return (
     <>
       {/* Filter tabs */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {FILTER_OPTIONS.map((f) => {
           const isActive = filter === f;
           const c = f !== "TODOS" ? scfg(f) : null;
@@ -376,209 +261,200 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
               key={f}
               onClick={() => setFilter(f)}
               style={{
+                padding: "8px 14px",
+                borderRadius: "var(--r-sm)",
+                fontSize: 12.5,
+                fontWeight: 600,
+                transition: "all .2s",
+                background: isActive ? "var(--gold)" : "rgba(255,255,255,0.04)",
+                color: isActive ? "#181203" : "var(--d-1)",
+                border: "1px solid",
+                borderColor: isActive ? "transparent" : "var(--ink-line)",
+                cursor: "pointer",
+                fontFamily: "var(--font-display)",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "6px 13px",
-                borderRadius: "var(--r-pill)",
-                border: "1px solid",
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: "var(--font-display)",
-                cursor: "pointer",
-                transition: "all .2s",
-                background: isActive && !c ? "rgba(255,184,0,0.1)" : "transparent",
-                borderColor: isActive ? (c ? "currentColor" : "var(--gold)") : "var(--ink-line-2)",
-                color: isActive && !c ? "var(--gold)" : isActive ? undefined : "var(--d-2)",
+                gap: 7,
               }}
-              className={isActive && c ? c.badge.split(" ")[1] : ""}
             >
-              {c && <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} aria-hidden />}
+              {c && !isActive && <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} aria-hidden />}
               {f === "TODOS" ? "Todos" : c!.label}
-              <span style={{ opacity: 0.55, fontSize: 11 }}>{countFor(f)}</span>
+              <span style={{ opacity: 0.6, fontSize: 11 }}>{countFor(f)}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Empty state */}
+      {/* Card list — exact design: vertical stack, padding 18 */}
       {filtered.length === 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "64px 0", textAlign: "center" }}>
-          <div style={{ fontSize: 36, opacity: 0.2 }} aria-hidden>🔑</div>
-          <p style={{ color: "var(--d-3)", fontSize: 13.5 }}>
-            {rentals.length === 0
-              ? "Nenhuma locação ainda. Inicie uma locação a partir de uma reserva confirmada."
-              : "Nenhuma locação para esse filtro."}
-          </p>
+        <div style={{ textAlign: "center", padding: "64px 0", color: "var(--d-3)", fontSize: 13.5 }}>
+          {rentals.length === 0
+            ? "Nenhuma locação ainda. Inicie uma locação a partir de uma reserva confirmada."
+            : "Nenhuma locação para esse filtro."}
         </div>
       ) : (
-        <div
-          style={{
-            borderRadius: "var(--r-md)",
-            border: "1px solid var(--ink-line)",
-            overflow: "hidden",
-            background: "var(--ink-card)",
-          }}
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px]">
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--ink-line-2)", background: "var(--ink-2)" }}>
-                  {["Cliente", "Veículo", "Período / Devolução", "Quilometragem", "Status", "Ações"].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        textAlign: "left",
-                        color: "var(--d-3)",
-                        fontSize: 9.5,
-                        fontWeight: 700,
-                        letterSpacing: "0.16em",
-                        textTransform: "uppercase",
-                        padding: "10px 20px",
-                        fontFamily: "var(--font-body)",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r) => {
-                  const sc = scfg(r.status);
-                  const busy = actionId === r.id;
-                  const pickupStr = formatDateShort(r.pickupDate.split("T")[0]);
-                  const returnStr = formatDateShort(r.returnDate.split("T")[0]);
-                  const returnDate = new Date(r.returnDate);
-                  const daysUntilReturn = Math.ceil((returnDate.getTime() - Date.now()) / 86400000);
-                  const returnSoon = r.status === "ACTIVE" && daysUntilReturn <= 1;
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {filtered.map((r) => {
+            const sc  = scfg(r.status);
+            const busy = actionId === r.id;
+            const returnDate = new Date(r.returnDate);
+            const daysLeft = Math.ceil((returnDate.getTime() - Date.now()) / 86400000);
+            const returnSoon = r.status === "ACTIVE" && daysLeft <= 1;
+            const hasChecklist = r.checklists.length > 0;
 
-                  return (
-                    <tr
-                      key={r.id}
-                      style={{ borderBottom: "1px solid var(--ink-line)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ink-card-2)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                    >
-                      {/* Cliente */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <div style={{ color: "var(--d-fg)", fontSize: 13.5, fontWeight: 600 }}>{r.customerName}</div>
-                        <div style={{ color: "var(--d-3)", fontSize: 11.5, marginTop: 2 }}>{r.customerPhone}</div>
-                      </td>
+            return (
+              <div
+                key={r.id}
+                style={{
+                  background: "var(--ink-card)",
+                  border: "1px solid var(--ink-line)",
+                  borderRadius: "var(--r-md)",
+                  padding: 18,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 18,
+                  flexWrap: "wrap",
+                  transition: "border-color .2s",
+                }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "var(--ink-line-2)")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.borderColor = "var(--ink-line)")}
+              >
+                {/* Key icon — gold tint square, exact design */}
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: "var(--r-sm)",
+                    background: "var(--gold-tint)",
+                    color: "var(--gold)",
+                    display: "grid",
+                    placeItems: "center",
+                    flexShrink: 0,
+                    border: "1px solid rgba(255,184,0,0.2)",
+                  }}
+                >
+                  <Key size={22} />
+                </div>
 
-                      {/* Veículo */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <div style={{ color: "var(--d-1)", fontSize: 13.5, fontWeight: 500 }}>{r.vehicleBrand} {r.vehicleModel}</div>
-                        <div style={{ color: "var(--d-3)", fontSize: 11, marginTop: 2, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.vehicleName}</div>
-                      </td>
-
-                      {/* Período */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <div style={{ color: "var(--d-2)", fontSize: 12.5, whiteSpace: "nowrap" }}>
-                          {pickupStr} <span style={{ color: "var(--d-4)" }}>→</span>{" "}
-                          <span style={{ color: returnSoon ? "#f87171" : "var(--d-2)", fontWeight: returnSoon ? 700 : 400 }}>
-                            {returnStr}
-                          </span>
-                        </div>
-                        {returnSoon && (
-                          <div style={{ color: "#f87171", fontSize: 10, marginTop: 2, fontWeight: 700 }}>
-                            {daysUntilReturn <= 0 ? "Hoje!" : "Amanhã"}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Quilometragem */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--d-2)" }}>
-                          {r.pickupMileage !== null ? (
-                            <span>{r.pickupMileage.toLocaleString("pt-BR")} km</span>
-                          ) : (
-                            <span style={{ color: "var(--d-4)" }}>— km</span>
-                          )}
-                          {r.returnMileage !== null && (
-                            <>
-                              <span style={{ color: "var(--d-4)" }}>→</span>
-                              <span style={{ color: "var(--d-1)", fontWeight: 600 }}>{r.returnMileage.toLocaleString("pt-BR")} km</span>
-                            </>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Status */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wide ${sc.badge}`}
-                        >
-                          {r.status === "ACTIVE" && (
-                            <span className="relative flex w-1.5 h-1.5">
-                              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${sc.dot}`} />
-                              <span className={`relative inline-flex rounded-full w-1.5 h-1.5 ${sc.dot}`} />
-                            </span>
-                          )}
-                          {sc.label}
+                {/* Customer + vehicle info */}
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>{r.customerName}</div>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wide ${sc.badge}`}>
+                      {r.status === "ACTIVE" && (
+                        <span className="relative flex w-1.5 h-1.5">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${sc.dot}`} />
+                          <span className={`relative inline-flex rounded-full w-1.5 h-1.5 ${sc.dot}`} />
                         </span>
-                      </td>
+                      )}
+                      {sc.label}
+                    </span>
+                  </div>
+                  <div style={{ color: "var(--d-3)", fontSize: 12.5, marginTop: 3 }}>
+                    {r.vehicleBrand} {r.vehicleModel} · RCAR-{r.id.slice(-6).toUpperCase()}
+                  </div>
+                </div>
 
-                      {/* Ações */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {r.status === "SCHEDULED" && (
-                            <>
-                              <ActionBtn
-                                label="Iniciar"
-                                variant="green"
-                                disabled={busy}
-                                onClick={() => setModal({ type: "activate", rental: r })}
-                              />
-                              <ActionBtn
-                                label="Cancelar"
-                                variant="red"
-                                disabled={busy}
-                                onClick={() => setModal({ type: "cancel", rental: r })}
-                              />
-                            </>
-                          )}
-                          {r.status === "ACTIVE" && (
-                            <>
-                              <ActionBtn
-                                label="Finalizar"
-                                variant="default"
-                                disabled={busy}
-                                onClick={() => setModal({ type: "finalize", rental: r })}
-                              />
-                              <ActionBtn
-                                label="Cancelar"
-                                variant="red"
-                                disabled={busy}
-                                onClick={() => setModal({ type: "cancel", rental: r })}
-                              />
-                            </>
-                          )}
-                          {r.status !== "CANCELLED" && (
-                            <button
-                              onClick={() => setChecklistRental(r)}
-                              title="Checklist de entrega/devolução"
-                              aria-label="Abrir checklist"
-                              className={`h-7 px-2.5 rounded-md border text-[10px] font-semibold uppercase tracking-wide transition-all ${
-                                r.checklists.length > 0
-                                  ? "border-emerald-500/30 text-emerald-400/70 hover:text-emerald-300 hover:border-emerald-500/50"
-                                  : "border-white/[0.08] text-white/30 hover:text-white/60 hover:border-white/20"
-                              }`}
-                            >
-                              📋 {r.checklists.length > 0 ? `${r.checklists.length}/2` : "Check"}
-                            </button>
-                          )}
-                          {r.status === "CANCELLED" && (
-                            <span className="text-white/15 text-xs">—</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                {/* Return date — exact design: eyebrow + date */}
+                <div style={{ minWidth: 140 }}>
+                  <div
+                    style={{
+                      color: returnSoon ? "#f87171" : "var(--d-3)",
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    Devolução prevista
+                  </div>
+                  <div
+                    style={{
+                      color: returnSoon ? "#f87171" : "var(--d-1)",
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      marginTop: 4,
+                    }}
+                  >
+                    {new Date(r.returnDate + "").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                    {returnSoon && (
+                      <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: "#f87171" }}>
+                        {daysLeft <= 0 ? "Hoje!" : "Amanhã"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions — exact design */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {/* Checklist status */}
+                  {r.status !== "CANCELLED" && (
+                    <button
+                      onClick={() => setChecklistRental(r)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        borderRadius: "var(--r-pill)",
+                        padding: "5px 12px",
+                        border: "none",
+                        cursor: "pointer",
+                        transition: "opacity .2s",
+                        ...(hasChecklist
+                          ? { color: "#34d399", background: "rgba(52,211,153,0.12)" }
+                          : { color: "var(--d-2)", background: "rgba(255,255,255,0.05)" }),
+                      }}
+                      title="Checklist de entrega/devolução"
+                    >
+                      <Check size={12} />
+                      {hasChecklist ? `Checklist ${r.checklists.length}/2` : "Checklist"}
+                    </button>
+                  )}
+
+                  {/* Status action buttons */}
+                  {r.status === "SCHEDULED" && (
+                    <>
+                      <button
+                        onClick={() => setModal({ type: "activate", rental: r })}
+                        disabled={busy}
+                        style={{ height: 36, padding: "0 16px", border: "1px solid var(--ink-line)", color: "var(--d-1)", borderRadius: "var(--r-sm)", fontSize: 12.5, fontWeight: 600, background: "transparent", cursor: "pointer", transition: "all .2s" }}
+                      >
+                        Iniciar
+                      </button>
+                      <button
+                        onClick={() => setModal({ type: "cancel", rental: r })}
+                        disabled={busy}
+                        style={{ height: 36, padding: "0 16px", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171", borderRadius: "var(--r-sm)", fontSize: 12.5, fontWeight: 600, background: "rgba(248,113,113,0.06)", cursor: "pointer" }}
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  )}
+                  {r.status === "ACTIVE" && (
+                    <>
+                      <button
+                        onClick={() => setModal({ type: "finalize", rental: r })}
+                        disabled={busy}
+                        style={{ height: 36, padding: "0 16px", border: "1px solid var(--ink-line)", color: "var(--d-1)", borderRadius: "var(--r-sm)", fontSize: 12.5, fontWeight: 600, background: "transparent", cursor: "pointer" }}
+                      >
+                        Finalizar
+                      </button>
+                      <button
+                        onClick={() => setModal({ type: "cancel", rental: r })}
+                        disabled={busy}
+                        style={{ height: 36, padding: "0 16px", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171", borderRadius: "var(--r-sm)", fontSize: 12.5, fontWeight: 600, background: "rgba(248,113,113,0.06)", cursor: "pointer" }}
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -597,31 +473,13 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
       {/* Action modals */}
       <AnimatePresence>
         {modal?.type === "activate" && (
-          <ActivateModal
-            key="activate"
-            rental={modal.rental}
-            onClose={() => setModal(null)}
-            onConfirm={handleActivate}
-            saving={actionId !== null}
-          />
+          <ActivateModal key="activate" rental={modal.rental} onClose={() => setModal(null)} onConfirm={handleActivate} saving={actionId !== null} />
         )}
         {modal?.type === "finalize" && (
-          <FinalizeModal
-            key="finalize"
-            rental={modal.rental}
-            onClose={() => setModal(null)}
-            onConfirm={handleFinalize}
-            saving={actionId !== null}
-          />
+          <FinalizeModal key="finalize" rental={modal.rental} onClose={() => setModal(null)} onConfirm={handleFinalize} saving={actionId !== null} />
         )}
         {modal?.type === "cancel" && (
-          <CancelModal
-            key="cancel"
-            rental={modal.rental}
-            onClose={() => setModal(null)}
-            onConfirm={handleCancel}
-            saving={actionId !== null}
-          />
+          <CancelModal key="cancel" rental={modal.rental} onClose={() => setModal(null)} onConfirm={handleCancel} saving={actionId !== null} />
         )}
       </AnimatePresence>
     </>
