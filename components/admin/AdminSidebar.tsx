@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard, Target, ClipboardList, Key, Calendar, Car, LogOut,
+} from "lucide-react";
+import { LogoMark } from "@/components/brand/LogoMark";
 
 const NAV = [
-  { href: "/admin/dashboard",    label: "Dashboard",  icon: "📊" },
-  { href: "/admin/leads",        label: "Leads",      icon: "🎯" },
-  { href: "/admin/reservations", label: "Reservas",   icon: "📋" },
-  { href: "/admin/rentals",      label: "Locações",   icon: "🔑" },
-  { href: "/admin/calendar",     label: "Calendário", icon: "📅" },
-  { href: "/admin/vehicles",     label: "Veículos",   icon: "🚗" },
+  { href: "/admin/dashboard",    label: "Dashboard",  Icon: LayoutDashboard },
+  { href: "/admin/leads",        label: "Leads",      Icon: Target          },
+  { href: "/admin/reservations", label: "Reservas",   Icon: ClipboardList   },
+  { href: "/admin/rentals",      label: "Locações",   Icon: Key             },
+  { href: "/admin/calendar",     label: "Calendário", Icon: Calendar        },
+  { href: "/admin/vehicles",     label: "Veículos",   Icon: Car             },
 ];
 
 export function AdminSidebar() {
@@ -24,43 +28,78 @@ export function AdminSidebar() {
   return (
     <>
       {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-56 bg-[#0a0a0a] border-r border-white/[0.07] z-30">
+      <aside
+        className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-56 z-30"
+        style={{
+          background: "var(--ink-1)",
+          borderRight: "1px solid var(--ink-line)",
+        }}
+      >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/[0.07]">
-          <div className="text-white font-black text-xl tracking-tight">RCAR</div>
-          <div className="text-white/30 text-[10px] tracking-[0.18em] uppercase mt-0.5">
+        <div
+          className="px-5 py-5"
+          style={{ borderBottom: "1px solid var(--ink-line)" }}
+        >
+          <LogoMark size={28} />
+          <div
+            className="mt-2 text-[9px] font-bold tracking-[0.22em] uppercase"
+            style={{ color: "var(--d-4)", fontFamily: "var(--font-body)" }}
+          >
             Painel Admin
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-          {NAV.map((item) => {
-            const active = pathname.startsWith(item.href);
+        <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
+          {NAV.map(({ href, label, Icon }) => {
+            const active = pathname.startsWith(href);
             return (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                key={href}
+                href={href}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150"
+                style={
                   active
-                    ? "bg-white/10 text-white"
-                    : "text-white/40 hover:text-white hover:bg-white/[0.05]"
-                }`}
+                    ? {
+                        background: "var(--gold)",
+                        color: "#181203",
+                        fontFamily: "var(--font-display)",
+                      }
+                    : {
+                        color: "var(--d-2)",
+                        fontFamily: "var(--font-display)",
+                      }
+                }
+                onMouseEnter={(e) => {
+                  if (!active) (e.currentTarget as HTMLElement).style.background = "var(--ink-card)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) (e.currentTarget as HTMLElement).style.background = "transparent";
+                }}
               >
-                <span className="text-base" aria-hidden="true">{item.icon}</span>
-                {item.label}
+                <Icon
+                  size={16}
+                  style={{ color: active ? "#181203" : "var(--d-3)", flexShrink: 0 }}
+                />
+                {label}
               </Link>
             );
           })}
         </nav>
 
         {/* Logout */}
-        <div className="px-3 py-4 border-t border-white/[0.07]">
+        <div
+          className="px-3 py-4"
+          style={{ borderTop: "1px solid var(--ink-line)" }}
+        >
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-white/30 hover:text-white hover:bg-white/[0.05] transition-all"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition-all"
+            style={{ color: "var(--d-3)", fontFamily: "var(--font-display)", background: "transparent" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.background = "var(--ink-card)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--d-3)"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
-            <span aria-hidden="true">→</span>
+            <LogOut size={16} style={{ flexShrink: 0 }} />
             Sair
           </button>
         </div>
@@ -70,29 +109,40 @@ export function AdminSidebar() {
       <div
         role="navigation"
         aria-label="Navegação admin"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center bg-[#0a0a0a] border-t border-white/[0.07]"
-        style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center"
+        style={{
+          paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+          background: "var(--ink-1)",
+          borderTop: "1px solid var(--ink-line)",
+        }}
       >
-        {NAV.map((item) => {
-          const active = pathname.startsWith(item.href);
+        {NAV.map(({ href, label, Icon }) => {
+          const active = pathname.startsWith(href);
           return (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center gap-1 pt-3 pb-1 text-[10px] font-semibold tracking-wide uppercase transition-colors ${
-                active ? "text-white" : "text-white/30"
-              }`}
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center gap-1 pt-3 pb-1 transition-colors"
+              style={{
+                color: active ? "var(--gold)" : "var(--d-3)",
+                fontFamily: "var(--font-body)",
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
             >
-              <span className="text-xl" aria-hidden="true">{item.icon}</span>
-              {item.label}
+              <Icon size={20} />
+              {label}
             </Link>
           );
         })}
         <button
           onClick={handleLogout}
-          className="flex-1 flex flex-col items-center gap-1 pt-3 pb-1 text-[10px] font-semibold tracking-wide uppercase text-white/30 hover:text-white transition-colors"
+          className="flex-1 flex flex-col items-center gap-1 pt-3 pb-1 transition-colors"
+          style={{ color: "var(--d-4)", fontFamily: "var(--font-body)", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}
         >
-          <span className="text-xl" aria-hidden="true">→</span>
+          <LogOut size={20} />
           Sair
         </button>
       </div>

@@ -8,6 +8,10 @@ export interface ShowroomCategory {
   image: string | null;
   tag?: string;
   dbCategory: string; // matches Prisma VehicleCategory (lowercase) for booking flow filter
+  seats?: number;
+  fuel?: string;
+  transmission?: string;
+  imageScale?: number; // scale multiplier for images that have extra whitespace around the car
 }
 
 export type VehicleFuel = "flex" | "gasoline" | "electric" | "hybrid" | "diesel";

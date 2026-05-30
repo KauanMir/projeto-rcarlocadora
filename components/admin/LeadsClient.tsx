@@ -233,20 +233,29 @@ export function LeadsClient({ leads: initial }: { leads: LeadRow[] }) {
 
   return (
     <>
-      {/* Status filter pills */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Status filter pills + search row */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, alignItems: "center" }}>
         <button
           onClick={() => setStatusFilter("ALL")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-            statusFilter === "ALL"
-              ? "bg-white/10 border-white/20 text-white"
-              : "border-white/[0.07] text-white/30 hover:text-white hover:border-white/20"
-          }`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 12px",
+            borderRadius: "var(--r-pill)",
+            border: "1px solid",
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: "var(--font-display)",
+            cursor: "pointer",
+            transition: "all .2s",
+            borderColor: statusFilter === "ALL" ? "var(--gold)" : "var(--ink-line-2)",
+            background: statusFilter === "ALL" ? "rgba(255,184,0,0.1)" : "transparent",
+            color: statusFilter === "ALL" ? "var(--gold)" : "var(--d-2)",
+          }}
         >
           Todos
-          <span className={statusFilter === "ALL" ? "text-white/50" : "text-white/20"}>
-            {leads.length}
-          </span>
+          <span style={{ opacity: 0.6, fontSize: 11 }}>{leads.length}</span>
         </button>
 
         {STATUS_OPTIONS.map((s) => {
@@ -257,54 +266,98 @@ export function LeadsClient({ leads: initial }: { leads: LeadRow[] }) {
             <button
               key={s}
               onClick={() => setStatusFilter(active ? "ALL" : s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                active
-                  ? `${c.badge} border-current`
-                  : "border-white/[0.07] text-white/30 hover:text-white hover:border-white/15 bg-white/[0.01]"
-              }`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: "var(--r-pill)",
+                border: "1px solid",
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                cursor: "pointer",
+                transition: "all .2s",
+                background: active ? `${c.badge.includes("violet") ? "rgba(139,92,246,0.12)" : c.badge.includes("blue") ? "rgba(59,130,246,0.12)" : c.badge.includes("amber") ? "rgba(245,158,11,0.12)" : c.badge.includes("emerald") ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.05)"}` : "transparent",
+                borderColor: active ? "currentColor" : "var(--ink-line-2)",
+              }}
+              className={active ? c.badge.split(" ")[1] : "text-white/30 hover:text-white/60"}
             >
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`} aria-hidden />
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                }}
+                className={c.dot}
+                aria-hidden
+              />
               {c.label}
-              <span className={active ? "opacity-60" : "text-white/20"}>{n}</span>
+              <span style={{ opacity: 0.6, fontSize: 11 }}>{n}</span>
             </button>
           );
         })}
-      </div>
 
-      {/* Search */}
-      <div className="mb-5">
-        <input
-          type="text"
-          placeholder="Buscar por nome ou telefone…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-80 h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 text-white/80 text-sm placeholder:text-white/20 focus:outline-none focus:border-white/[0.15] transition-colors"
-        />
+        <div style={{ marginLeft: "auto" }}>
+          <input
+            type="text"
+            placeholder="Buscar por nome ou telefone…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              width: 260,
+              height: 36,
+              background: "var(--ink-card)",
+              border: "1px solid var(--ink-line-2)",
+              borderRadius: "var(--r-sm)",
+              padding: "0 14px",
+              color: "#fff",
+              fontSize: 13.5,
+              outline: "none",
+              fontFamily: "var(--font-body)",
+              transition: "border-color .2s",
+            }}
+          />
+        </div>
       </div>
 
       {/* Empty state */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <span className="text-4xl opacity-20" aria-hidden>🎯</span>
-          <p className="text-white/25 text-sm">
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "64px 0", textAlign: "center" }}>
+          <div style={{ fontSize: 36, opacity: 0.2 }} aria-hidden>🎯</div>
+          <p style={{ color: "var(--d-3)", fontSize: 13.5 }}>
             {leads.length === 0
               ? "Nenhum lead ainda. Leads são criados automaticamente ao receber novas reservas."
               : "Nenhum lead encontrado para esse filtro."}
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-white/[0.08] overflow-hidden">
+        <div
+          style={{
+            borderRadius: "var(--r-md)",
+            border: "1px solid var(--ink-line)",
+            overflow: "hidden",
+            background: "var(--ink-card)",
+          }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px]">
               <thead>
-                <tr
-                  className="border-b border-white/[0.07]"
-                  style={{ background: "rgba(255,255,255,0.015)" }}
-                >
+                <tr style={{ borderBottom: "1px solid var(--ink-line-2)", background: "var(--ink-2)" }}>
                   {["Cliente", "Reserva", "Status", "Notas", "Criado em", ""].map((h) => (
                     <th
                       key={h}
-                      className="text-left text-white/20 text-[9px] tracking-[0.18em] uppercase font-semibold px-5 py-3.5"
+                      style={{
+                        textAlign: "left",
+                        color: "var(--d-3)",
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: "0.16em",
+                        textTransform: "uppercase",
+                        padding: "10px 20px",
+                        fontFamily: "var(--font-body)",
+                      }}
                     >
                       {h}
                     </th>
@@ -426,11 +479,29 @@ export function LeadsClient({ leads: initial }: { leads: LeadRow[] }) {
                       <td className="pr-4 py-4">
                         <button
                           onClick={() => openWhatsApp(lead)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/[0.07] text-white/20 hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-emerald-500/[0.05] transition-all"
                           title={`Abrir WhatsApp de ${lead.name}`}
                           aria-label={`Abrir WhatsApp de ${lead.name}`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            height: 30,
+                            padding: "0 10px",
+                            borderRadius: "var(--r-sm)",
+                            border: "1px solid rgba(37,211,102,0.3)",
+                            background: "rgba(37,211,102,0.08)",
+                            color: "var(--wa)",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            fontFamily: "var(--font-display)",
+                            cursor: "pointer",
+                            transition: "all .2s",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.15)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(37,211,102,0.5)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(37,211,102,0.08)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(37,211,102,0.3)"; }}
                         >
-                          <span className="text-sm" aria-hidden>💬</span>
+                          💬 WhatsApp
                         </button>
                       </td>
                     </tr>

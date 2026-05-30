@@ -1,127 +1,133 @@
-import Link from "next/link";
-import { SITE_NAME } from "@/utils/constants";
-import { LogoMark } from "@/components/brand/LogoMark";
+"use client";
 
-const WHATSAPP_HREF = "https://wa.link/jn6p0u";
-const INSTAGRAM_HREF = "https://www.instagram.com/rcar.alugueldecarros/";
-const INSTAGRAM_HANDLE = "@rcar.alugueldecarros";
+import Link from "next/link";
+import { MapPin, Phone } from "lucide-react";
+import { LogoMark } from "@/components/brand/LogoMark";
+import { WHATSAPP_HREF, INSTAGRAM_HREF, INSTAGRAM_HANDLE } from "@/utils/constants";
+
+const NAV_COLS = [
+  {
+    heading: "Navegação",
+    links: [
+      { label: "Início", href: "#inicio" },
+      { label: "Frota", href: "#frota" },
+      { label: "Como Funciona", href: "#como-funciona" },
+      { label: "Vantagens", href: "#vantagens" },
+    ],
+  },
+  {
+    heading: "Documentos",
+    links: [
+      { label: "Como funciona o aluguel", href: "#" },
+      { label: "Contrato Rent a Car", href: "#" },
+      { label: "Políticas de Privacidade", href: "#" },
+    ],
+  },
+];
+
+const linkStyle: React.CSSProperties = { color: "var(--d-1)", fontSize: 14, transition: "color .2s", textDecoration: "none" };
 
 export function Footer() {
   return (
-    <footer className="bg-black border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-
-          {/* ── Brand ── */}
+    <footer style={{ background: "#060607", borderTop: "1px solid var(--ink-line)", padding: "64px 0 32px" }}>
+      <div className="max-w-[var(--maxw,1240px)] mx-auto px-7">
+        <div className="foot-grid" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1.2fr", gap: 40 }}>
+          {/* Brand column */}
           <div>
-            <div className="mb-4">
-              <LogoMark size={44} />
-            </div>
-            <p className="text-white/50 text-sm leading-relaxed max-w-xs">
-              Aluguel de veículos em Gama-DF. Reservas rápidas e atendimento direto pelo WhatsApp.
+            <LogoMark size={32} />
+            <p style={{ color: "var(--d-2)", fontSize: 14, lineHeight: 1.7, maxWidth: 280, marginTop: 18 }}>
+              Locadora de veículos no Gama-DF. Carros revisados, reservas rápidas e atendimento humanizado pelo WhatsApp.
             </p>
-
-            {/* Social */}
-            <div className="flex flex-col gap-2.5 mt-5">
-              <a
-                href={INSTAGRAM_HREF}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 text-white/40 hover:text-white text-sm transition-colors w-fit"
-              >
-                <span aria-hidden className="text-base">📸</span>
-                <span>{INSTAGRAM_HANDLE}</span>
-              </a>
+            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2.5 text-white/40 hover:text-white text-sm transition-colors w-fit"
+                aria-label="WhatsApp"
+                style={{ width: 40, height: 40, borderRadius: "var(--r-sm)", border: "1px solid var(--ink-line)", display: "grid", placeItems: "center", color: "var(--d-1)", transition: "all .2s", textDecoration: "none" }}
+                onMouseEnter={(e) => { const el = e.currentTarget; el.style.color = "var(--gold)"; el.style.borderColor = "rgba(255,184,0,0.4)"; }}
+                onMouseLeave={(e) => { const el = e.currentTarget; el.style.color = "var(--d-1)"; el.style.borderColor = "var(--ink-line)"; }}
               >
-                <span aria-hidden className="text-base">💬</span>
-                <span>Fale conosco pelo WhatsApp</span>
+                <Phone size={18} />
+              </a>
+              <a
+                href={INSTAGRAM_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                style={{ width: 40, height: 40, borderRadius: "var(--r-sm)", border: "1px solid var(--ink-line)", display: "grid", placeItems: "center", color: "var(--d-1)", transition: "all .2s", textDecoration: "none" }}
+                onMouseEnter={(e) => { const el = e.currentTarget; el.style.color = "var(--gold)"; el.style.borderColor = "rgba(255,184,0,0.4)"; }}
+                onMouseLeave={(e) => { const el = e.currentTarget; el.style.color = "var(--d-1)"; el.style.borderColor = "var(--ink-line)"; }}
+              >
+                <span style={{ fontSize: 16 }}>📸</span>
               </a>
             </div>
           </div>
 
-          {/* ── Navegação ── */}
-          <div>
-            <h4 className="text-white font-semibold text-sm tracking-widest uppercase mb-4">
-              Navegação
-            </h4>
-            <ul className="space-y-3">
-              {[
-                { label: "Ver Frota",       href: "/#frota"          },
-                { label: "Como Funciona",   href: "/#como-funciona"  },
-                { label: "Reservar",        href: "/booking"         },
-              ].map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-white/50 hover:text-white text-sm transition-colors duration-200"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Nav columns */}
+          {NAV_COLS.map((col) => (
+            <div key={col.heading}>
+              <h4 style={{ color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 18 }}>{col.heading}</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <a
+                      href={l.href}
+                      style={linkStyle}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--d-1)")}
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
-          {/* ── Contato ── */}
+          {/* Location column */}
           <div>
-            <h4 className="text-white font-semibold text-sm tracking-widest uppercase mb-4">
-              Contato
-            </h4>
-            <ul className="space-y-3">
-              <li className="text-white/50 text-sm flex items-start gap-2">
-                <span aria-hidden className="mt-0.5 shrink-0">📍</span>
-                <span>
-                  Q 36 Comércio Local A/E
-                  <br />
-                  Setor Leste — Gama, DF
-                </span>
+            <h4 style={{ color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 18 }}>Localização</h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+              <li style={{ display: "flex", gap: 10, color: "var(--d-1)", fontSize: 14, lineHeight: 1.5 }}>
+                <MapPin size={16} style={{ color: "var(--gold)", marginTop: 2, flexShrink: 0 }} />
+                <span>Q 36 Comércio Local A/E<br />Setor Leste — Gama, DF</span>
               </li>
-              <li>
-                <a
-                  href={WHATSAPP_HREF}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/50 hover:text-white text-sm transition-colors duration-200 flex items-start gap-2"
-                >
-                  <span aria-hidden className="mt-0.5">💬</span>
-                  WhatsApp
+              <li style={{ display: "flex", gap: 10, color: "var(--d-1)", fontSize: 14 }}>
+                <Phone size={16} style={{ color: "var(--gold)", flexShrink: 0 }} />
+                <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" style={{ color: "var(--d-1)", textDecoration: "none" }} onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")} onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--d-1)")}>
+                  (61) 9 9999-9999
                 </a>
               </li>
-              <li>
-                <a
-                  href={INSTAGRAM_HREF}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/50 hover:text-white text-sm transition-colors duration-200 flex items-start gap-2"
-                >
-                  <span aria-hidden className="mt-0.5">📸</span>
-                  Instagram
+              <li style={{ display: "flex", gap: 10, color: "var(--d-1)", fontSize: 14 }}>
+                <span style={{ color: "var(--gold)", flexShrink: 0, fontSize: 16, lineHeight: 1 }}>📸</span>
+                <a href={INSTAGRAM_HREF} target="_blank" rel="noopener noreferrer" style={{ color: "var(--d-1)", textDecoration: "none" }} onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")} onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--d-1)")}>
+                  {INSTAGRAM_HANDLE}
                 </a>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* ── Bottom bar ── */}
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-sm">
-            &copy; {new Date().getFullYear()} {SITE_NAME}. Todos os direitos reservados.
-          </p>
-          <div className="flex items-center gap-6">
-            <Link href="#" className="text-white/30 hover:text-white text-xs transition-colors">
-              Termos
-            </Link>
-            <Link href="#" className="text-white/30 hover:text-white text-xs transition-colors">
-              Privacidade
-            </Link>
+        {/* Bottom bar */}
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid var(--ink-line)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
+          <p style={{ color: "var(--d-3)", fontSize: 13 }}>© {new Date().getFullYear()} RCAR Locadora de Veículos. Todos os direitos reservados.</p>
+          <div style={{ display: "flex", gap: 22 }}>
+            <a href="#" style={{ color: "var(--d-3)", fontSize: 12.5, textDecoration: "none" }}>Termos</a>
+            <a href="#" style={{ color: "var(--d-3)", fontSize: 12.5, textDecoration: "none" }}>Privacidade</a>
+            <Link href="/admin/login" style={{ color: "var(--d-3)", fontSize: 12.5, textDecoration: "none" }}>Admin</Link>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .foot-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 560px) {
+          .foot-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </footer>
   );
 }

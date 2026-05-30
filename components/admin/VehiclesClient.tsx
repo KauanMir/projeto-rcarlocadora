@@ -403,12 +403,31 @@ export function VehiclesClient({ vehicles: initial }: { vehicles: AdminVehicle[]
   return (
     <>
       {/* ── Desktop table ── */}
-      <div className="hidden md:block overflow-x-auto">
+      <div
+        className="hidden md:block overflow-x-auto"
+        style={{
+          border: "1px solid var(--ink-line)",
+          borderRadius: "var(--r-md)",
+          background: "var(--ink-card)",
+        }}
+      >
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/[0.07]">
+            <tr style={{ borderBottom: "1px solid var(--ink-line-2)", background: "var(--ink-2)" }}>
               {["Veículo", "Diária", "Transmissão", "Combustível", "Reservas", "Status", ""].map((h) => (
-                <th key={h} className="text-left text-white/25 text-[9px] tracking-[0.16em] uppercase font-semibold pb-3 pr-4 last:pr-0">
+                <th
+                  key={h}
+                  style={{
+                    textAlign: "left",
+                    color: "var(--d-3)",
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    padding: "10px 16px",
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
                   {h}
                 </th>
               ))}
@@ -418,26 +437,61 @@ export function VehiclesClient({ vehicles: initial }: { vehicles: AdminVehicle[]
             {vehicles.map((v) => {
               const toggling = togglingId === v.id;
               return (
-                <tr key={v.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-
-                  {/* Vehicle cell — with optional thumbnail */}
-                  <td className="py-4 pr-4">
-                    <div className="flex items-center gap-3">
+                <tr
+                  key={v.id}
+                  style={{ borderBottom: "1px solid var(--ink-line)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ink-card-2)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  {/* Vehicle cell */}
+                  <td style={{ padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       {/* Cover thumbnail */}
-                      <div className={`w-12 h-12 rounded-lg overflow-hidden shrink-0 ${v.imageUrl ? "bg-transparent" : "bg-white/[0.04] border border-white/[0.07]"} flex items-center justify-center`}>
+                      <div
+                        style={{
+                          width: 52,
+                          height: 52,
+                          borderRadius: "var(--r-sm)",
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          background: v.imageUrl ? "radial-gradient(ellipse at 50% 40%, #1e1e22, #0e0e10)" : "var(--ink-card-2)",
+                          border: "1px solid var(--ink-line-2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
                         {v.imageUrl ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={v.imageUrl} alt={v.name} className="w-full h-full object-cover" />
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={v.imageUrl}
+                            alt={v.name}
+                            style={{ width: "100%", height: "100%", objectFit: "contain", padding: 6, filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.5))" }}
+                          />
                         ) : (
-                          <span className="text-white/15 text-sm" aria-hidden>🚗</span>
+                          <span style={{ color: "var(--d-4)", fontSize: 20 }} aria-hidden>🚗</span>
                         )}
                       </div>
                       <div>
-                        <div className="text-white font-medium leading-tight">{v.brand} {v.model}</div>
-                        <div className="text-white/35 text-xs mt-0.5">{v.name} · {v.year}</div>
-                        <div className="text-white/20 text-[10px] mt-0.5">{CATEGORY_LABELS[v.category] ?? v.category}</div>
+                        <div style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>{v.brand} {v.model}</div>
+                        <div style={{ color: "var(--d-2)", fontSize: 11.5, marginTop: 2 }}>{v.name} · {v.year}</div>
+                        <div style={{ color: "var(--d-3)", fontSize: 10.5, marginTop: 1 }}>{CATEGORY_LABELS[v.category] ?? v.category}</div>
                         {v.featured && (
-                          <span className="inline-flex mt-1 px-1.5 py-0.5 rounded-sm bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-bold tracking-wide uppercase">
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              marginTop: 4,
+                              padding: "2px 7px",
+                              borderRadius: "var(--r-xs)",
+                              background: "rgba(255,184,0,0.12)",
+                              color: "var(--gold)",
+                              border: "1px solid rgba(255,184,0,0.25)",
+                              fontSize: 9,
+                              fontWeight: 800,
+                              letterSpacing: "0.1em",
+                              textTransform: "uppercase",
+                            }}
+                          >
                             Destaque
                           </span>
                         )}
@@ -445,28 +499,30 @@ export function VehiclesClient({ vehicles: initial }: { vehicles: AdminVehicle[]
                     </div>
                   </td>
 
-                  <td className="py-4 pr-4">
-                    <div className="text-white font-semibold whitespace-nowrap">{formatPrice(v.dailyRate)}</div>
-                    <div className="text-white/25 text-[10px]">por dia</div>
+                  <td style={{ padding: "14px 16px" }}>
+                    <div style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 16, whiteSpace: "nowrap" }}>
+                      {formatPrice(v.dailyRate)}
+                    </div>
+                    <div style={{ color: "var(--d-3)", fontSize: 10.5 }}>por dia</div>
                   </td>
 
-                  <td className="py-4 pr-4 text-white/50 text-xs whitespace-nowrap">
+                  <td style={{ padding: "14px 16px", color: "var(--d-2)", fontSize: 12.5, whiteSpace: "nowrap" }}>
                     {TRANSMISSION_LABELS[v.transmission] ?? v.transmission}
                   </td>
 
-                  <td className="py-4 pr-4 text-white/50 text-xs whitespace-nowrap">
+                  <td style={{ padding: "14px 16px", color: "var(--d-2)", fontSize: 12.5, whiteSpace: "nowrap" }}>
                     {FUEL_LABELS[v.fuel] ?? v.fuel}
                   </td>
 
-                  <td className="py-4 pr-4 text-white/40 text-sm">{v.reservationCount}</td>
+                  <td style={{ padding: "14px 16px", color: "var(--d-2)", fontSize: 13 }}>{v.reservationCount}</td>
 
                   {/* Availability toggle */}
-                  <td className="py-4 pr-4">
+                  <td style={{ padding: "14px 16px" }}>
                     <button
                       onClick={() => toggleAvailability(v)}
                       disabled={toggling}
                       aria-label={v.available ? "Desativar veículo" : "Ativar veículo"}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-bold tracking-[0.12em] uppercase border transition-all disabled:opacity-50 ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-[0.12em] uppercase border transition-all disabled:opacity-50 ${
                         v.available
                           ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/25"
                           : "bg-red-500/15 text-red-400 border-red-500/25 hover:bg-red-500/25"
@@ -477,10 +533,23 @@ export function VehiclesClient({ vehicles: initial }: { vehicles: AdminVehicle[]
                     </button>
                   </td>
 
-                  <td className="py-4">
+                  <td style={{ padding: "14px 16px" }}>
                     <button
                       onClick={() => setEditing(v)}
-                      className="px-3 py-1.5 border border-white/[0.08] text-white/30 hover:text-white hover:border-white/25 rounded-sm text-[10px] font-semibold tracking-wide uppercase transition-all active:scale-[0.97]"
+                      style={{
+                        padding: "5px 12px",
+                        border: "1px solid var(--ink-line-2)",
+                        borderRadius: "var(--r-sm)",
+                        color: "var(--d-2)",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-display)",
+                        background: "transparent",
+                        cursor: "pointer",
+                        transition: "all .2s",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.borderColor = "var(--d-3)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--d-2)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-line-2)"; }}
                     >
                       Editar
                     </button>

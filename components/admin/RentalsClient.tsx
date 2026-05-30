@@ -367,7 +367,7 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
   return (
     <>
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
         {FILTER_OPTIONS.map((f) => {
           const isActive = filter === f;
           const c = f !== "TODOS" ? scfg(f) : null;
@@ -375,15 +375,27 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                isActive
-                  ? c ? `${c.badge} border-current` : "bg-white/10 border-white/20 text-white"
-                  : "border-white/[0.07] text-white/30 hover:text-white hover:border-white/15"
-              }`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 13px",
+                borderRadius: "var(--r-pill)",
+                border: "1px solid",
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                cursor: "pointer",
+                transition: "all .2s",
+                background: isActive && !c ? "rgba(255,184,0,0.1)" : "transparent",
+                borderColor: isActive ? (c ? "currentColor" : "var(--gold)") : "var(--ink-line-2)",
+                color: isActive && !c ? "var(--gold)" : isActive ? undefined : "var(--d-2)",
+              }}
+              className={isActive && c ? c.badge.split(" ")[1] : ""}
             >
               {c && <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} aria-hidden />}
               {f === "TODOS" ? "Todos" : c!.label}
-              <span className={isActive ? "opacity-60" : "text-white/20"}>{countFor(f)}</span>
+              <span style={{ opacity: 0.55, fontSize: 11 }}>{countFor(f)}</span>
             </button>
           );
         })}
@@ -391,22 +403,41 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
 
       {/* Empty state */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <span className="text-4xl opacity-20" aria-hidden>🚗</span>
-          <p className="text-white/25 text-sm">
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "64px 0", textAlign: "center" }}>
+          <div style={{ fontSize: 36, opacity: 0.2 }} aria-hidden>🔑</div>
+          <p style={{ color: "var(--d-3)", fontSize: 13.5 }}>
             {rentals.length === 0
               ? "Nenhuma locação ainda. Inicie uma locação a partir de uma reserva confirmada."
               : "Nenhuma locação para esse filtro."}
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-white/[0.08] overflow-hidden">
+        <div
+          style={{
+            borderRadius: "var(--r-md)",
+            border: "1px solid var(--ink-line)",
+            overflow: "hidden",
+            background: "var(--ink-card)",
+          }}
+        >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px]">
               <thead>
-                <tr className="border-b border-white/[0.07]" style={{ background: "rgba(255,255,255,0.015)" }}>
-                  {["Cliente", "Veículo", "Período", "Quilometragem", "Status", "Ações"].map((h) => (
-                    <th key={h} className="text-left text-white/20 text-[9px] tracking-[0.18em] uppercase font-semibold px-5 py-3.5">
+                <tr style={{ borderBottom: "1px solid var(--ink-line-2)", background: "var(--ink-2)" }}>
+                  {["Cliente", "Veículo", "Período / Devolução", "Quilometragem", "Status", "Ações"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: "left",
+                        color: "var(--d-3)",
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: "0.16em",
+                        textTransform: "uppercase",
+                        padding: "10px 20px",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
                       {h}
                     </th>
                   ))}
@@ -418,47 +449,63 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
                   const busy = actionId === r.id;
                   const pickupStr = formatDateShort(r.pickupDate.split("T")[0]);
                   const returnStr = formatDateShort(r.returnDate.split("T")[0]);
+                  const returnDate = new Date(r.returnDate);
+                  const daysUntilReturn = Math.ceil((returnDate.getTime() - Date.now()) / 86400000);
+                  const returnSoon = r.status === "ACTIVE" && daysUntilReturn <= 1;
 
                   return (
-                    <tr key={r.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.015] transition-colors">
+                    <tr
+                      key={r.id}
+                      style={{ borderBottom: "1px solid var(--ink-line)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ink-card-2)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
                       {/* Cliente */}
-                      <td className="px-5 py-4">
-                        <div className="text-white/80 text-xs font-semibold">{r.customerName}</div>
-                        <div className="text-white/25 text-[10px] mt-0.5">{r.customerPhone}</div>
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ color: "var(--d-fg)", fontSize: 13.5, fontWeight: 600 }}>{r.customerName}</div>
+                        <div style={{ color: "var(--d-3)", fontSize: 11.5, marginTop: 2 }}>{r.customerPhone}</div>
                       </td>
 
                       {/* Veículo */}
-                      <td className="px-5 py-4">
-                        <div className="text-white/65 text-xs font-medium">{r.vehicleBrand} {r.vehicleModel}</div>
-                        <div className="text-white/25 text-[10px] mt-0.5 truncate max-w-[120px]">{r.vehicleName}</div>
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ color: "var(--d-1)", fontSize: 13.5, fontWeight: 500 }}>{r.vehicleBrand} {r.vehicleModel}</div>
+                        <div style={{ color: "var(--d-3)", fontSize: 11, marginTop: 2, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.vehicleName}</div>
                       </td>
 
                       {/* Período */}
-                      <td className="px-5 py-4">
-                        <div className="text-white/60 text-xs whitespace-nowrap">
-                          {pickupStr} <span className="text-white/20">→</span> {returnStr}
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ color: "var(--d-2)", fontSize: 12.5, whiteSpace: "nowrap" }}>
+                          {pickupStr} <span style={{ color: "var(--d-4)" }}>→</span>{" "}
+                          <span style={{ color: returnSoon ? "#f87171" : "var(--d-2)", fontWeight: returnSoon ? 700 : 400 }}>
+                            {returnStr}
+                          </span>
                         </div>
+                        {returnSoon && (
+                          <div style={{ color: "#f87171", fontSize: 10, marginTop: 2, fontWeight: 700 }}>
+                            {daysUntilReturn <= 0 ? "Hoje!" : "Amanhã"}
+                          </div>
+                        )}
                       </td>
 
                       {/* Quilometragem */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2 text-xs text-white/40">
+                      <td style={{ padding: "14px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "var(--d-2)" }}>
                           {r.pickupMileage !== null ? (
                             <span>{r.pickupMileage.toLocaleString("pt-BR")} km</span>
                           ) : (
-                            <span className="text-white/15">— km</span>
+                            <span style={{ color: "var(--d-4)" }}>— km</span>
                           )}
                           {r.returnMileage !== null && (
                             <>
-                              <span className="text-white/15">→</span>
-                              <span className="text-white/60">{r.returnMileage.toLocaleString("pt-BR")} km</span>
+                              <span style={{ color: "var(--d-4)" }}>→</span>
+                              <span style={{ color: "var(--d-1)", fontWeight: 600 }}>{r.returnMileage.toLocaleString("pt-BR")} km</span>
                             </>
                           )}
                         </div>
                       </td>
 
                       {/* Status */}
-                      <td className="px-5 py-4">
+                      <td style={{ padding: "14px 20px" }}>
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wide ${sc.badge}`}
                         >
@@ -473,7 +520,7 @@ export function RentalsClient({ rentals: initial }: { rentals: RentalRow[] }) {
                       </td>
 
                       {/* Ações */}
-                      <td className="px-5 py-4">
+                      <td style={{ padding: "14px 20px" }}>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {r.status === "SCHEDULED" && (
                             <>

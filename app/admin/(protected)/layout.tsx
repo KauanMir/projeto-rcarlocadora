@@ -11,7 +11,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
   await requireAdmin();
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white">
+    <div className="min-h-screen text-white" style={{ background: "var(--ink)" }}>
       <AdminSidebar />
       <main className="lg:pl-56 min-h-screen pb-24 lg:pb-0">
         {children}

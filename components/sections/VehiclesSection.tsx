@@ -1,138 +1,206 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { SHOWROOM_CATEGORIES } from "@/utils/constants";
+import { ArrowRight, Fuel, Settings, Users } from "lucide-react";
+import { SHOWROOM_CATEGORIES, FLEET_FILTERS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
 import type { ShowroomCategory } from "@/types/vehicle";
 
-function CategoryCard({ category, index }: { category: ShowroomCategory; index: number }) {
+function FleetCard({ category, index }: { category: ShowroomCategory; index: number }) {
+  const [hov, setHov] = useState(false);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.55, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col bg-[#0a0a0a] border border-white/[0.07] rounded-xl overflow-hidden hover:border-white/20 hover:-translate-y-1 transition-all duration-300"
-      style={{ willChange: "transform" }}
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: "var(--paper-2)",
+        border: "1px solid",
+        borderColor: hov ? "rgba(255,184,0,0.6)" : "var(--l-line)",
+        borderRadius: "var(--r-md)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        transition: "transform .35s cubic-bezier(0.16,1,0.3,1), box-shadow .35s, border-color .35s",
+        transform: hov ? "translateY(-7px)" : "none",
+        boxShadow: hov ? "0 28px 60px rgba(20,18,14,0.16)" : "var(--shadow-card)",
+      }}
     >
-      {/* Image area */}
-      <div className="relative h-48 bg-[#0d0d0d] overflow-hidden flex-shrink-0">
+      {/* Image */}
+      <div style={{ position: "relative", height: 200, background: "radial-gradient(ellipse at 50% 40%, #ffffff, #ebeae4)", overflow: "hidden", flexShrink: 0 }}>
+        {/* Subtle grid overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "linear-gradient(rgba(20,18,14,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(20,18,14,0.03) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage: "radial-gradient(ellipse at center, black, transparent 72%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black, transparent 72%)",
+        }} />
+
+        {/* Index number watermark */}
+        <span style={{ position: "absolute", top: 14, right: 16, fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "rgba(20,18,14,0.12)", letterSpacing: "0.04em" }}>
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
         {category.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={category.image}
             alt={category.name}
-            className="absolute inset-0 w-full h-full object-contain p-5 transition-transform duration-500 group-hover:scale-105"
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "contain", padding: "26px 24px 30px",
+              transition: "transform .55s cubic-bezier(0.16,1,0.3,1)",
+              transform: hov
+                ? `scale(${(category.imageScale ?? 1) * 1.07}) translateY(-2px)`
+                : category.imageScale ? `scale(${category.imageScale})` : "none",
+              filter: "drop-shadow(0 18px 22px rgba(20,18,14,0.22))",
+              mixBlendMode: category.imageScale ? "multiply" : undefined,
+            }}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none">
-            <span
-              className="text-white font-black leading-none tracking-tighter"
-              style={{ fontSize: "clamp(56px, 8vw, 72px)", opacity: 0.04 }}
-            >
-              {category.name.split(" ")[0].toUpperCase()}
-            </span>
+          <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 66, color: "rgba(20,18,14,0.05)" }}>
+            {category.name.split(" ")[0].toUpperCase()}
           </div>
         )}
 
-        {/* Bottom gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/70 via-transparent to-transparent pointer-events-none" />
+        {/* Ground reflection */}
+        <div style={{ position: "absolute", bottom: 16, left: "20%", right: "20%", height: 14, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(20,18,14,0.16), transparent 70%)", filter: "blur(4px)" }} />
 
         {/* Tag badge */}
         {category.tag && (
-          <div className="absolute top-3 left-3 z-10">
-            <span className="text-[9px] font-black tracking-[0.15em] uppercase bg-[#ffb800] text-black px-2 py-1 rounded-sm">
-              {category.tag}
-            </span>
-          </div>
+          <span style={{ position: "absolute", top: 14, left: 16, background: "var(--gold)", color: "#181203", fontSize: 9.5, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 10px", borderRadius: "var(--r-xs)", whiteSpace: "nowrap" }}>
+            {category.tag}
+          </span>
         )}
-
-        {/* Price pill */}
-        <div
-          className="absolute bottom-3 right-3 z-10 rounded-sm px-3 py-2 text-right"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <div className="text-white/35 text-[9px] tracking-[0.12em] uppercase leading-none mb-0.5">a partir de</div>
-          <div className="text-white font-black text-lg leading-none">
-            {formatPrice(category.pricePerDay)}
-            <span className="text-white/35 text-xs font-normal">/dia</span>
-          </div>
-        </div>
       </div>
 
-      {/* Info area */}
-      <div className="flex flex-col flex-1 p-5 gap-3">
+      {/* Info */}
+      <div style={{ padding: "20px 22px 22px", display: "flex", flexDirection: "column", gap: 16, flex: 1, borderTop: "1px solid var(--l-line)" }}>
         <div>
-          <h3 className="text-white font-bold text-base leading-snug">{category.name}</h3>
-          <p className="text-white/30 text-xs mt-1.5 leading-relaxed">
-            {category.models.join(" · ")}
+          <h3 style={{ fontSize: 19, color: "var(--graphite)", fontWeight: 800, fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>
+            {category.name}
+          </h3>
+          <p style={{ color: "var(--l-2)", fontSize: 12.5, marginTop: 6, lineHeight: 1.5 }}>
+            {category.models.slice(0, 4).join(" · ")}
           </p>
         </div>
 
-        <div className="mt-auto pt-1">
+        {/* Specs */}
+        {(category.fuel || category.transmission || category.seats) && (
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {category.fuel && (
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "var(--l-1)" }}>
+                <Fuel size={15} style={{ color: "var(--l-3)" }} /> {category.fuel}
+              </span>
+            )}
+            {category.transmission && (
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "var(--l-1)" }}>
+                <Settings size={15} style={{ color: "var(--l-3)" }} /> {category.transmission}
+              </span>
+            )}
+            {category.seats && (
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "var(--l-1)" }}>
+                <Users size={15} style={{ color: "var(--l-3)" }} /> {category.seats} lug.
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Price + CTA */}
+        <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid var(--l-line)", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ color: "var(--l-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>a partir de</div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 27, color: "var(--graphite)", lineHeight: 1.1 }}>
+              {formatPrice(category.pricePerDay)}<span style={{ fontSize: 13, color: "var(--l-3)", fontWeight: 600 }}>/dia</span>
+            </div>
+          </div>
           <Link
             href={`/booking?category=${category.dbCategory}`}
-            className="flex w-full h-10 items-center justify-center bg-white text-black hover:bg-[#ffb800] active:scale-[0.97] font-semibold rounded-sm text-xs tracking-[0.06em] uppercase transition-all duration-200"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: 13.5,
+              color: hov ? "var(--gold-deep)" : "var(--graphite)",
+              transition: "color .25s",
+              textDecoration: "none",
+            }}
           >
             Reservar
+            <span style={{ display: "grid", placeItems: "center", width: 30, height: 30, borderRadius: "50%", background: hov ? "var(--gold)" : "var(--graphite)", color: hov ? "#181203" : "#fff", transition: "all .25s", transform: hov ? "translateX(2px)" : "none" }}>
+              <ArrowRight size={15} />
+            </span>
           </Link>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export function VehiclesSection() {
+  const [filter, setFilter] = useState("all");
+  const visible = filter === "all" ? SHOWROOM_CATEGORIES : SHOWROOM_CATEGORIES.filter((c) => c.dbCategory === filter);
+
   return (
-    <section id="frota" className="bg-[#080808] py-28 border-t border-white/[0.04]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="text-white/25 text-[10px] tracking-[0.2em] uppercase font-semibold mb-4">
-              Nossa Frota
-            </p>
-            <h2
-              className="text-white font-black leading-[0.95] tracking-tight"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 3.75rem)" }}
-            >
-              Escolha sua
-              <br />
-              <span className="text-white/25">categoria ideal.</span>
+    <section id="frota" style={{ background: "var(--paper)", padding: "116px 0", borderTop: "1px solid var(--l-line)", position: "relative" }}>
+      <div className="max-w-[var(--maxw,1240px)] mx-auto px-7">
+        {/* Section header + filters */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 24, marginBottom: 40 }}>
+          <div style={{ maxWidth: 560 }}>
+            {/* Eyebrow */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+              <span style={{ width: 26, height: 2, background: "var(--gold)", borderRadius: 2 }} />
+              <span style={{ fontFamily: "var(--font-body)", fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gold)" }}>Nossa Frota</span>
+            </div>
+            <h2 style={{ fontSize: "clamp(2.1rem, 4.2vw, 3.4rem)", color: "var(--graphite)", fontFamily: "var(--font-display)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 0.98, textWrap: "balance" as React.CSSProperties["textWrap"] }}>
+              Encontre o carro <span style={{ color: "var(--l-3)" }}>da sua viagem.</span>
             </h2>
-            <p className="text-white/35 text-sm mt-5 max-w-lg leading-relaxed">
-              Trabalhamos com categorias de veículos — você reserva a categoria e
-              recebe o melhor modelo disponível. Garantia de qualidade e conforto.
+            <p style={{ color: "var(--l-2)", fontSize: 16.5, lineHeight: 1.6, marginTop: 18 }}>
+              Reserve a categoria e receba o melhor modelo disponível — todos com ar-condicionado, manutenção em dia e documentação regularizada.
             </p>
-          </motion.div>
+          </div>
+
+          {/* Filter pills */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+            {FLEET_FILTERS.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setFilter(id)}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: "var(--r-pill)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontFamily: "var(--font-display)",
+                  transition: "all .2s",
+                  background: filter === id ? "var(--graphite)" : "transparent",
+                  color: filter === id ? "#fff" : "var(--l-1)",
+                  border: "1px solid",
+                  borderColor: filter === id ? "var(--graphite)" : "var(--l-line-2)",
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {SHOWROOM_CATEGORIES.map((category, index) => (
-            <CategoryCard key={category.id} category={category} index={index} />
+        {/* Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 22 }}>
+          {visible.map((category, i) => (
+            <FleetCard key={category.id} category={category} index={i} />
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mt-14 text-center"
-        >
-          <p className="text-white/20 text-xs tracking-[0.12em] uppercase">
-            Todos os veículos com ar-condicionado · Manutenção em dia · Documentação regularizada
-          </p>
-        </motion.div>
+        <p style={{ textAlign: "center", marginTop: 44, color: "var(--l-3)", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.06em" }}>
+          * Valores não incluem taxas do contrato. Diárias a partir do valor indicado por categoria.
+        </p>
       </div>
     </section>
   );

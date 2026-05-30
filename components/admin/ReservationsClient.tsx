@@ -363,24 +363,39 @@ export function ReservationsClient({
   return (
     <>
       {/* ── Filter chips ── */}
-      <div className="flex flex-wrap gap-2 mb-6" role="group" aria-label="Filtrar por status">
-        {FILTER_OPTIONS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            aria-pressed={filter === f}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[10px] font-bold tracking-[0.14em] uppercase transition-all ${
-              filter === f
-                ? "bg-white text-black"
-                : "border border-white/10 text-white/35 hover:border-white/25 hover:text-white/70"
-            }`}
-          >
-            {f === FILTER_ALL ? "Todos" : cfg(f).label}
-            <span className={`text-[9px] ${filter === f ? "opacity-50" : "opacity-40"}`}>
-              {filterCount(f)}
-            </span>
-          </button>
-        ))}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }} role="group" aria-label="Filtrar por status">
+        {FILTER_OPTIONS.map((f) => {
+          const active = filter === f;
+          const c = f !== FILTER_ALL ? cfg(f) : null;
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              aria-pressed={active}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 13px",
+                borderRadius: "var(--r-pill)",
+                border: "1px solid",
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                cursor: "pointer",
+                transition: "all .2s",
+                background: active ? (f === FILTER_ALL ? "rgba(255,184,0,0.1)" : "transparent") : "transparent",
+                borderColor: active ? (f === FILTER_ALL ? "var(--gold)" : "currentColor") : "var(--ink-line-2)",
+                color: active ? (f === FILTER_ALL ? "var(--gold)" : undefined) : "var(--d-2)",
+              }}
+              className={active && c ? c.badge.split(" ")[1] : ""}
+            >
+              {c && <span style={{ width: 6, height: 6, borderRadius: "50%" }} className={c.dot} aria-hidden />}
+              {f === FILTER_ALL ? "Todos" : c!.label}
+              <span style={{ opacity: 0.55, fontSize: 11 }}>{filterCount(f)}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Empty state ── */}
@@ -392,12 +407,31 @@ export function ReservationsClient({
       ) : (
         <>
           {/* ── Desktop table ── */}
-          <div className="hidden md:block overflow-x-auto">
+          <div
+            className="hidden md:block overflow-x-auto"
+            style={{
+              border: "1px solid var(--ink-line)",
+              borderRadius: "var(--r-md)",
+              background: "var(--ink-card)",
+            }}
+          >
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.07]">
+                <tr style={{ borderBottom: "1px solid var(--ink-line-2)", background: "var(--ink-2)" }}>
                   {["Referência", "Cliente", "Veículo", "Período", "Total", "Status", "", ""].map((h) => (
-                    <th key={h} className="text-left text-white/25 text-[9px] tracking-[0.16em] uppercase font-semibold pb-3 pr-4 last:pr-0">
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: "left",
+                        color: "var(--d-3)",
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: "0.16em",
+                        textTransform: "uppercase",
+                        padding: "10px 16px",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
                       {h}
                     </th>
                   ))}
@@ -407,50 +441,82 @@ export function ReservationsClient({
                 {filtered.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group"
+                    style={{ borderBottom: "1px solid var(--ink-line)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ink-card-2)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
-                    <td className="py-3.5 pr-4 font-mono text-white/50 text-xs">
-                      RCAR-{r.id.slice(-6).toUpperCase()}
+                    <td style={{ padding: "14px 16px" }}>
+                      <span style={{ fontFamily: "monospace", color: "var(--d-3)", fontSize: 11.5, fontWeight: 600, letterSpacing: "0.04em" }}>
+                        RCAR-{r.id.slice(-6).toUpperCase()}
+                      </span>
                     </td>
-                    <td className="py-3.5 pr-4 text-white/80">{r.customerName}</td>
-                    <td className="py-3.5 pr-4 text-white/50">{r.vehicleName}</td>
-                    <td className="py-3.5 pr-4 text-white/50 text-xs whitespace-nowrap">
-                      {formatDateShort(r.pickupDate.split("T")[0])} → {formatDateShort(r.returnDate.split("T")[0])}
+                    <td style={{ padding: "14px 16px", color: "var(--d-fg)", fontSize: 13.5, fontWeight: 500 }}>{r.customerName}</td>
+                    <td style={{ padding: "14px 16px", color: "var(--d-2)", fontSize: 13 }}>{r.vehicleName}</td>
+                    <td style={{ padding: "14px 16px", color: "var(--d-2)", fontSize: 12.5, whiteSpace: "nowrap" }}>
+                      {formatDateShort(r.pickupDate.split("T")[0])} <span style={{ color: "var(--d-4)" }}>→</span> {formatDateShort(r.returnDate.split("T")[0])}
                     </td>
-                    <td className="py-3.5 pr-4 text-white font-semibold whitespace-nowrap">
+                    <td style={{ padding: "14px 16px", color: "#fff", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, whiteSpace: "nowrap" }}>
                       {formatPrice(r.totalPrice)}
                     </td>
-                    <td className="py-3.5 pr-4">
+                    <td style={{ padding: "14px 16px" }}>
                       <StatusSelect
                         status={r.status}
                         loading={updatingId === r.id}
                         onChange={(s) => handleStatusChange(r.id, s)}
                       />
                     </td>
-                    <td className="py-3.5">
+                    <td style={{ padding: "14px 16px" }}>
                       <button
                         onClick={() => setSelected(r)}
-                        className="px-3 py-1.5 border border-white/[0.08] text-white/30 hover:text-white hover:border-white/25 rounded-sm text-[10px] font-semibold tracking-wide uppercase transition-all active:scale-[0.97]"
+                        style={{
+                          padding: "5px 12px",
+                          border: "1px solid var(--ink-line-2)",
+                          borderRadius: "var(--r-sm)",
+                          color: "var(--d-2)",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          fontFamily: "var(--font-display)",
+                          background: "transparent",
+                          cursor: "pointer",
+                          transition: "all .2s",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#fff"; (e.currentTarget as HTMLElement).style.borderColor = "var(--d-3)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--d-2)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-line-2)"; }}
                       >
                         Ver
                       </button>
                     </td>
-                    <td className="py-3.5 pl-2">
+                    <td style={{ padding: "14px 16px" }}>
                       {r.status === "CONFIRMED" && !rentalIds.has(r.id) && (
                         <button
                           onClick={() => handleStartRental(r.id)}
                           disabled={startingId === r.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-500/30 text-emerald-400/70 hover:text-emerald-300 hover:border-emerald-500/50 hover:bg-emerald-500/[0.06] rounded-sm text-[10px] font-semibold tracking-wide uppercase transition-all active:scale-[0.97] disabled:opacity-40"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "5px 10px",
+                            border: "1px solid rgba(52,211,153,0.3)",
+                            borderRadius: "var(--r-sm)",
+                            color: "#34d399",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            fontFamily: "var(--font-display)",
+                            background: "rgba(52,211,153,0.06)",
+                            cursor: "pointer",
+                            transition: "all .2s",
+                            opacity: startingId === r.id ? 0.5 : 1,
+                          }}
                         >
                           {startingId === r.id
                             ? <span className="w-2.5 h-2.5 border border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin" />
-                            : <span aria-hidden>▶</span>
+                            : "▶"
                           }
                           Locação
                         </button>
                       )}
                       {r.status === "CONFIRMED" && rentalIds.has(r.id) && (
-                        <span className="text-emerald-400/50 text-[10px] font-semibold">✓ locação</span>
+                        <span style={{ color: "rgba(52,211,153,0.5)", fontSize: 11, fontWeight: 600 }}>✓ locação</span>
                       )}
                     </td>
                   </tr>

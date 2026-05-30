@@ -1,82 +1,182 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { Check, Shield } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { INSURANCE_OPTIONS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
 
 export function InsuranceSelection() {
   const { insurance: selectedInsurance, setInsurance } = useBookingStore();
+  const [hov, setHov] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col gap-8 max-w-2xl">
+    <div style={{ display: "flex", flexDirection: "column", gap: 32, maxWidth: 640 }}>
+      {/* Heading */}
       <div>
-        <h2 className="text-white font-black text-3xl md:text-4xl mb-2">
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <span style={{ width: 22, height: 2, background: "var(--gold)", borderRadius: 2 }} />
+          <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", fontFamily: "var(--font-body)" }}>
+            Etapa 3
+          </span>
+        </div>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(1.9rem, 4vw, 2.8rem)", color: "#fff", letterSpacing: "-0.02em", lineHeight: 1, marginBottom: 10 }}>
           Escolha sua cobertura
         </h2>
-        <p className="text-white/40">Proteção para viajar com tranquilidade.</p>
+        <p style={{ color: "var(--d-2)", fontSize: 15, lineHeight: 1.6 }}>Proteção para viajar com tranquilidade.</p>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {INSURANCE_OPTIONS.map((option, index) => {
           const isSelected = selectedInsurance?.id === option.id;
+          const isHov = hov === option.id;
 
           return (
             <motion.button
               key={option.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: index * 0.08 }}
+              transition={{ duration: 0.38, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => setInsurance(option)}
-              className={`text-left border rounded-xl p-6 transition-all duration-200 relative overflow-hidden ${
-                isSelected
-                  ? "bg-white/10 border-white/40"
-                  : "bg-white/[0.02] border-white/10 hover:border-white/25 hover:bg-white/[0.04]"
-              }`}
+              onMouseEnter={() => setHov(option.id)}
+              onMouseLeave={() => setHov(null)}
+              style={{
+                textAlign: "left",
+                position: "relative",
+                overflow: "hidden",
+                borderRadius: "var(--r-md)",
+                border: "1px solid",
+                padding: "22px 22px",
+                transition: "border-color .25s, background .25s, transform .25s, box-shadow .25s",
+                cursor: "pointer",
+                ...(isSelected
+                  ? {
+                      borderColor: "rgba(255,184,0,0.65)",
+                      background: "rgba(255,184,0,0.07)",
+                      boxShadow: "0 0 0 1px rgba(255,184,0,0.15)",
+                    }
+                  : isHov
+                  ? {
+                      borderColor: "var(--ink-line-2)",
+                      background: "var(--ink-card)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
+                    }
+                  : {
+                      borderColor: "var(--ink-line)",
+                      background: "var(--ink-card)",
+                    }),
+              }}
             >
+              {/* Recommended badge */}
               {option.recommended && (
-                <div className="absolute top-0 right-0 bg-white text-black text-[9px] font-black tracking-widest uppercase px-3 py-1.5 rounded-bl-xl">
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    background: "var(--gold)",
+                    color: "#181203",
+                    fontSize: 9,
+                    fontWeight: 800,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    padding: "5px 14px",
+                    borderBottomLeftRadius: "var(--r-sm)",
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
                   Recomendado
                 </div>
               )}
 
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="text-white font-bold text-lg leading-none">{option.name}</div>
-                  <div className="text-white/40 text-sm mt-1">{option.description}</div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                {/* Icon */}
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: "var(--r-sm)",
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    marginTop: 2,
+                    transition: "background .25s, border-color .25s",
+                    ...(isSelected
+                      ? { background: "var(--gold-tint)", border: "1px solid rgba(255,184,0,0.3)", color: "var(--gold)" }
+                      : { background: "var(--ink-card-2)", border: "1px solid var(--ink-line)", color: "var(--d-3)" }),
+                  }}
+                >
+                  <Shield size={20} />
                 </div>
-                <div className="text-right shrink-0 ml-4">
-                  {option.pricePerDay === 0 ? (
-                    <div className="text-white font-black text-lg leading-none">Incluso</div>
-                  ) : (
-                    <>
-                      <div className="text-white font-black text-lg leading-none">
-                        + {formatPrice(option.pricePerDay)}
-                      </div>
-                      <div className="text-white/30 text-xs mt-1">por dia</div>
-                    </>
-                  )}
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 8 }}>
+                    <div>
+                      <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, lineHeight: 1.1 }}>{option.name}</div>
+                      <div style={{ color: "var(--d-2)", fontSize: 13, marginTop: 4 }}>{option.description}</div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      {option.pricePerDay === 0 ? (
+                        <div style={{ color: "#34d399", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 16 }}>Incluso</div>
+                      ) : (
+                        <>
+                          <div style={{ color: isSelected ? "var(--gold)" : "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, lineHeight: 1, transition: "color .25s" }}>
+                            + {formatPrice(option.pricePerDay)}
+                          </div>
+                          <div style={{ color: "var(--d-3)", fontSize: 11, marginTop: 3 }}>por dia</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {option.features.map((feature) => (
+                      <span
+                        key={feature}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: isSelected ? "rgba(255,184,0,0.85)" : "var(--d-2)",
+                          background: isSelected ? "rgba(255,184,0,0.08)" : "rgba(255,255,255,0.04)",
+                          border: "1px solid",
+                          borderColor: isSelected ? "rgba(255,184,0,0.2)" : "var(--ink-line-2)",
+                          borderRadius: "var(--r-xs)",
+                          padding: "4px 9px",
+                          transition: "all .25s",
+                        }}
+                      >
+                        {isSelected && <Check size={10} strokeWidth={3} style={{ color: "var(--gold)" }} />}
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {option.features.map((feature) => (
-                  <span
-                    key={feature}
-                    className="text-xs text-white/50 bg-white/[0.05] border border-white/10 rounded-sm px-2.5 py-1"
-                  >
-                    {feature}
-                  </span>
-                ))}
-              </div>
-
+              {/* Selected indicator */}
               {isSelected && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="mt-4 text-[10px] font-bold tracking-widest uppercase text-white bg-white/10 rounded-sm px-2 py-1 w-fit"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 14,
+                    paddingTop: 12,
+                    borderTop: "1px solid rgba(255,184,0,0.15)",
+                  }}
                 >
-                  ✓ Selecionado
+                  <Check size={12} strokeWidth={3} style={{ color: "var(--gold)" }} />
+                  <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--font-body)" }}>
+                    Selecionado
+                  </span>
                 </motion.div>
               )}
             </motion.button>

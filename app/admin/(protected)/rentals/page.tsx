@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { RentalsClient } from "@/components/admin/RentalsClient";
+import { AdminPageHeader, AdminKpiCard } from "@/components/admin/AdminPageHeader";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Locações" };
@@ -37,18 +38,22 @@ export default async function RentalsPage() {
     })),
   }));
 
-  const activeCount = rentals.filter((r) => r.status === "ACTIVE").length;
+  const activeCount    = rentals.filter((r) => r.status === "ACTIVE").length;
   const scheduledCount = rentals.filter((r) => r.status === "SCHEDULED").length;
+  const completedCount = rentals.filter((r) => r.status === "COMPLETED").length;
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-white font-black text-2xl">Locações</h1>
-        <p className="text-white/35 text-sm mt-1">
-          {rentals.length} locaç{rentals.length !== 1 ? "ões" : "ão"} ·{" "}
-          {activeCount} ativa{activeCount !== 1 ? "s" : ""} ·{" "}
-          {scheduledCount} agendada{scheduledCount !== 1 ? "s" : ""}
-        </p>
+    <div style={{ padding: "28px 28px 40px" }}>
+      <AdminPageHeader
+        title="Locações"
+        subtitle="Gerencie o ciclo de vida de cada locação ativa."
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
+        <AdminKpiCard label="Total" value={rentals.length} />
+        <AdminKpiCard label="Ativas" value={activeCount} accent="#34d399" />
+        <AdminKpiCard label="Agendadas" value={scheduledCount} accent="#38bdf8" />
+        <AdminKpiCard label="Concluídas" value={completedCount} />
       </div>
 
       <RentalsClient rentals={rentals} />

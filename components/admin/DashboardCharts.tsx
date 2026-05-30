@@ -15,18 +15,20 @@ function BarChart({
   getValue,
   formatter,
   accentColor,
+  currentLabel,
 }: {
   data: MonthStat[];
   getValue: (d: MonthStat) => number;
   formatter: (v: number) => string;
   accentColor: string;
+  currentLabel?: string;
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
   const max = Math.max(...data.map(getValue), 1);
   const currentIdx = data.length - 1;
 
   return (
-    <div className="flex items-end gap-[3px] h-28">
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 120 }}>
       {data.map((d, i) => {
         const val = getValue(d);
         const pct = (val / max) * 100;
@@ -36,46 +38,70 @@ function BarChart({
         return (
           <div
             key={i}
-            className="flex-1 flex flex-col items-center justify-end gap-1.5 relative cursor-default"
+            style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: 6, position: "relative", cursor: "default" }}
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
           >
+            {/* Tooltip */}
             {isHovered && (
               <motion.div
-                initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.1 }}
-                className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 z-20 pointer-events-none whitespace-nowrap"
                 style={{
-                  background: "rgba(10,10,12,0.97)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.09)",
-                  borderRadius: 8,
+                  position: "absolute",
+                  bottom: "calc(100% + 8px)",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  zIndex: 20,
+                  pointerEvents: "none",
+                  whiteSpace: "nowrap",
+                  background: "var(--ink-card-2)",
+                  border: "1px solid var(--ink-line-2)",
+                  borderRadius: "var(--r-sm)",
+                  boxShadow: "var(--shadow-pop)",
                 }}
               >
-                <div className="px-3 py-2">
-                  <div className="text-white text-xs font-bold">{formatter(val)}</div>
-                  <div className="text-white/40 text-[10px]">{d.label}</div>
+                <div style={{ padding: "8px 12px" }}>
+                  <div style={{ color: "#fff", fontSize: 12.5, fontWeight: 700, fontFamily: "var(--font-display)" }}>{formatter(val)}</div>
+                  <div style={{ color: "var(--d-3)", fontSize: 10.5 }}>{d.label}</div>
                 </div>
               </motion.div>
             )}
 
             <div
-              className="w-full rounded-sm transition-all duration-300"
               style={{
-                height: `${Math.max(pct, val > 0 ? 3 : 0)}%`,
+                width: "100%",
+                borderRadius: "3px 3px 0 0",
                 minHeight: val > 0 ? 3 : 0,
-                backgroundColor: accentColor,
-                opacity: isCurrent ? 1 : isHovered ? 0.85 : 0.4,
+                height: `${Math.max(pct, val > 0 ? 3 : 0)}%`,
+                background: isCurrent ? accentColor : accentColor,
+                opacity: isCurrent ? 1 : isHovered ? 0.7 : 0.3,
+                transition: "opacity .2s, height .3s ease",
+                position: "relative",
               }}
-            />
+            >
+              {/* Shimmer on current month */}
+              {isCurrent && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "inherit",
+                    background: `linear-gradient(to top, transparent 50%, rgba(255,255,255,0.12))`,
+                  }}
+                />
+              )}
+            </div>
 
             <span
-              className="text-[8px] leading-none transition-colors"
               style={{
-                color:
-                  isCurrent || isHovered
-                    ? "rgba(255,255,255,0.55)"
-                    : "rgba(255,255,255,0.2)",
+                fontSize: 8.5,
+                lineHeight: 1,
+                transition: "color .2s",
+                color: isCurrent || isHovered ? "var(--d-1)" : "var(--d-4)",
+                fontFamily: "var(--font-body)",
+                fontWeight: isCurrent ? 700 : 400,
               }}
             >
               {d.label}
@@ -92,14 +118,24 @@ export function DashboardCharts({ monthlyStats }: { monthlyStats: MonthStat[] })
   const totalRevenue = monthlyStats.reduce((s, d) => s + d.revenue, 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl p-6">
-        <div className="mb-6">
-          <div className="text-white/20 text-[9px] tracking-[0.18em] uppercase mb-2">
-            Reservas por mês
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+      {/* Reservations chart */}
+      <div
+        style={{
+          background: "var(--ink-card)",
+          border: "1px solid var(--ink-line)",
+          borderRadius: "var(--r-md)",
+          padding: "20px 22px",
+        }}
+      >
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ color: "var(--d-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--font-body)" }}>
+            Reservas · 12 meses
           </div>
-          <div className="text-white font-black text-3xl leading-none">{totalReservations}</div>
-          <div className="text-white/25 text-xs mt-1.5">últimos 12 meses</div>
+          <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 28, lineHeight: 1, letterSpacing: "-0.02em" }}>
+            {totalReservations}
+          </div>
+          <div style={{ color: "var(--d-3)", fontSize: 11.5, marginTop: 4 }}>total de reservas</div>
         </div>
         <BarChart
           data={monthlyStats}
@@ -109,21 +145,30 @@ export function DashboardCharts({ monthlyStats }: { monthlyStats: MonthStat[] })
         />
       </div>
 
-      <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl p-6">
-        <div className="mb-6">
-          <div className="text-white/20 text-[9px] tracking-[0.18em] uppercase mb-2">
-            Receita por mês
+      {/* Revenue chart */}
+      <div
+        style={{
+          background: "var(--ink-card)",
+          border: "1px solid var(--ink-line)",
+          borderLeft: "3px solid var(--gold)",
+          borderRadius: "var(--r-md)",
+          padding: "20px 22px",
+        }}
+      >
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ color: "var(--d-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 6, fontFamily: "var(--font-body)" }}>
+            Receita · 12 meses
           </div>
-          <div className="text-white font-black text-3xl leading-none">
+          <div style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 28, lineHeight: 1, letterSpacing: "-0.02em" }}>
             {formatPrice(totalRevenue)}
           </div>
-          <div className="text-white/25 text-xs mt-1.5">últimos 12 meses</div>
+          <div style={{ color: "var(--d-3)", fontSize: 11.5, marginTop: 4 }}>excl. canceladas</div>
         </div>
         <BarChart
           data={monthlyStats}
           getValue={(d) => d.revenue}
           formatter={(v) => formatPrice(v)}
-          accentColor="#10b981"
+          accentColor="#ffb800"
         />
       </div>
     </div>

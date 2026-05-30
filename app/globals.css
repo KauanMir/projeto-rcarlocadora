@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-sora);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,6 +49,52 @@
 }
 
 :root {
+  /* ── Design System Tokens ──────────────────────────────── */
+  --gold: #ffb800;
+  --gold-deep: #e3a200;
+  --gold-soft: #ffd76b;
+  --gold-tint: rgba(255, 184, 0, 0.12);
+
+  --wa: #25d366;
+  --wa-deep: #1eb558;
+
+  --ink: #0a0a0b;
+  --ink-1: #0e0e10;
+  --ink-2: #131316;
+  --ink-card: #161619;
+  --ink-card-2: #1c1c20;
+  --ink-line: rgba(255, 255, 255, 0.08);
+  --ink-line-2: rgba(255, 255, 255, 0.14);
+
+  --d-fg: #f5f5f4;
+  --d-1: rgba(255, 255, 255, 0.62);
+  --d-2: rgba(255, 255, 255, 0.42);
+  --d-3: rgba(255, 255, 255, 0.26);
+  --d-4: rgba(255, 255, 255, 0.14);
+
+  --paper: #f4f3ef;
+  --paper-2: #ffffff;
+  --l-line: rgba(20, 18, 14, 0.10);
+  --l-line-2: rgba(20, 18, 14, 0.16);
+
+  --graphite: #16151a;
+  --l-1: #3a3a3e;
+  --l-2: #6c6b70;
+  --l-3: #9a999e;
+
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  --font-display: var(--font-sora);
+  --font-body: var(--font-manrope);
+
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(20,18,14,0.07);
+  --shadow-pop: 0 24px 70px rgba(0,0,0,0.55);
+  /* ──────────────────────────────────────────────────────── */
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -137,8 +183,8 @@
 
   /* Text selection */
   ::selection {
-    background-color: rgba(255,255,255,0.1);
-    color: #fff;
+    background-color: var(--gold);
+    color: #181203;
   }
 
   /* Date input calendar icon color */
@@ -158,6 +204,30 @@
   50% { opacity: 1; transform: scale(1.08); }
 }
 
+/* Vehicle float animation */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Rise in entrance */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Pop in from top */
+@keyframes popIn {
+  from { transform: translateY(-6px) scale(0.985); }
+  to { transform: none; }
+}
+
+/* Car slide in from right */
+@keyframes carSlideR {
+  from { transform: translateX(40px) scale(0.965); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
 /* Horizontal speed line sweep */
 @keyframes sweep {
   0% { transform: translateX(-100%); opacity: 0; }
@@ -174,6 +244,17 @@
 .animate-ambient  { animation: ambient-breathe 9s ease-in-out infinite; }
 .animate-sweep    { animation: sweep 4s ease-in-out infinite; }
 .animate-shimmer  { animation: shimmer 1.8s ease-in-out infinite; }
+.animate-floaty   { animation: floaty 8s ease-in-out infinite; }
+.reveal           { animation: riseIn 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Booking card hover lift */
+.bk-card {
+  transition: transform .22s cubic-bezier(0.16,1,0.3,1), box-shadow .22s, border-color .2s, background .2s !important;
+}
+.bk-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.42);
+}
 
 /* iOS safe-area CSS variables */
 :root {
