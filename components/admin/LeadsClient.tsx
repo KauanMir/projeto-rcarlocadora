@@ -8,7 +8,7 @@ import { useToastStore } from "@/store/toastStore";
 
 // ─── Types ────────────────────────────────────────────────────
 
-type LeadStatus = "NEW" | "CONTACTED" | "NEGOTIATING" | "WON" | "LOST";
+type LeadStatus = "NEW" | "CONTACTED" | "NEGOTIATING" | "AWAITING" | "WON" | "CAR_RENTED" | "LOST";
 
 interface LeadReservation {
   pickupDate: string;
@@ -31,13 +31,15 @@ export interface LeadRow {
 // ─── Status config ────────────────────────────────────────────
 
 const STATUS_CFG: Record<LeadStatus, { label: string; dot: string; text: string }> = {
-  NEW:         { label: "Novo",       dot: "#a78bfa", text: "#a78bfa" },
-  CONTACTED:   { label: "Contatado",  dot: "#60a5fa", text: "#60a5fa" },
-  NEGOTIATING: { label: "Negociando", dot: "#fbbf24", text: "#fbbf24" },
-  WON:         { label: "Convertido", dot: "#34d399", text: "#34d399" },
-  LOST:        { label: "Perdido",    dot: "#9a999e", text: "#9a999e" },
+  NEW:         { label: "Novo",               dot: "#a78bfa", text: "#a78bfa" },
+  CONTACTED:   { label: "Em contato",         dot: "#60a5fa", text: "#60a5fa" },
+  NEGOTIATING: { label: "Negociando",         dot: "#fbbf24", text: "#fbbf24" },
+  AWAITING:    { label: "Ag. retorno",        dot: "#fb923c", text: "#fb923c" },
+  WON:         { label: "Convertido",         dot: "#34d399", text: "#34d399" },
+  CAR_RENTED:  { label: "Carro alugado",      dot: "#22d3ee", text: "#22d3ee" },
+  LOST:        { label: "Perdido",            dot: "#9a999e", text: "#9a999e" },
 };
-const STATUS_OPTIONS: LeadStatus[] = ["NEW", "CONTACTED", "NEGOTIATING", "WON", "LOST"];
+const STATUS_OPTIONS: LeadStatus[] = ["NEW", "CONTACTED", "NEGOTIATING", "AWAITING", "WON", "CAR_RENTED", "LOST"];
 
 function scfg(s: string) { return STATUS_CFG[s as LeadStatus] ?? STATUS_CFG.NEW; }
 

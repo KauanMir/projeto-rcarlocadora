@@ -7,7 +7,7 @@ const createSchema = z.object({
   phone:           z.string().min(8).max(30),
   vehicleInterest: z.string().max(120).optional(),
   notes:           z.string().max(2000).nullable().optional(),
-  status:          z.enum(["NEW", "CONTACTED", "NEGOTIATING", "WON", "LOST"]).optional(),
+  status:          z.enum(["NEW", "CONTACTED", "NEGOTIATING", "AWAITING", "WON", "CAR_RENTED", "LOST"]).optional(),
 });
 
 export async function GET() {

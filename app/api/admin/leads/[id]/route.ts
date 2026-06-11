@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
 const patchSchema = z.object({
-  status:          z.enum(["NEW", "CONTACTED", "NEGOTIATING", "WON", "LOST"]).optional(),
+  status:          z.enum(["NEW", "CONTACTED", "NEGOTIATING", "AWAITING", "WON", "CAR_RENTED", "LOST"]).optional(),
   notes:           z.string().max(2000).nullable().optional(),
   name:            z.string().min(2).max(120).optional(),
   phone:           z.string().min(8).max(30).optional(),

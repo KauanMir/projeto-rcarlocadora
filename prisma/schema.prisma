@@ -50,7 +50,9 @@ enum LeadStatus {
   NEW
   CONTACTED
   NEGOTIATING
+  AWAITING
   WON
+  CAR_RENTED
   LOST
 }
 
