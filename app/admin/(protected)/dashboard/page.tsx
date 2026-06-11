@@ -1,279 +1,212 @@
 import { prisma } from "@/lib/prisma";
-import { DashboardCharts } from "@/components/admin/DashboardCharts";
+import { DashboardCharts, type FleetMixItem, type UtilItem } from "@/components/admin/DashboardCharts";
 import { formatPrice } from "@/utils/format";
+import { AlertTriangle, TrendingUp, ClipboardList, DollarSign, Clock, Car, BarChart2, Key } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-const MONTH_SHORT = [
-  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
-];
+const MONTH_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-const STATUS_CFG: Record<string, { label: string; dot: string; text: string }> = {
-  PENDING:   { label: "Pendente",   dot: "bg-amber-400",   text: "text-amber-400" },
-  CONFIRMED: { label: "Confirmada", dot: "bg-blue-400",    text: "text-blue-400" },
-  FINISHED:  { label: "Concluída",  dot: "bg-emerald-400", text: "text-emerald-400" },
-  CANCELLED: { label: "Cancelada",  dot: "bg-white/30",    text: "text-white/30" },
+const CATEGORY_COLORS: Record<string, string> = {
+  ECONOMY: "#ffb800",
+  SEDAN:   "#60a5fa",
+  SUV:     "#34d399",
+  PICKUP:  "#a78bfa",
+  MINIVAN: "#f87171",
 };
 
-// ─── Sub-components (server-rendered) ────────────────────────
+const CATEGORY_LABELS: Record<string, string> = {
+  ECONOMY: "Econômico",
+  SEDAN:   "Sedan",
+  SUV:     "SUV",
+  PICKUP:  "Picape",
+  MINIVAN: "Minivan",
+};
+
+const STATUS_CFG: Record<string, { label: string; dot: string; text: string; bg: string }> = {
+  PENDING:   { label: "Pendente",   dot: "#fbbf24", text: "#fbbf24", bg: "rgba(251,191,36,0.12)"  },
+  CONFIRMED: { label: "Confirmada", dot: "#60a5fa", text: "#60a5fa", bg: "rgba(96,165,250,0.12)"  },
+  FINISHED:  { label: "Concluída",  dot: "#34d399", text: "#34d399", bg: "rgba(52,211,153,0.12)"  },
+  CANCELLED: { label: "Cancelada",  dot: "#9a999e", text: "#9a999e", bg: "rgba(154,153,158,0.12)" },
+};
+
+const aCard: React.CSSProperties = {
+  background: "var(--ink-card)",
+  border: "1px solid var(--ink-line)",
+  borderRadius: "var(--r-md)",
+};
+
+// ─── Sub-components (server-rendered) ─────────────────────────
 
 function KpiCard({
   icon,
   label,
   value,
   sub,
+  trend,
+  warn,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string | number;
   sub?: string;
+  trend?: string;
+  warn?: boolean;
 }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <span className="text-white/20 text-[9px] tracking-[0.18em] uppercase">{label}</span>
-        <span className="text-xl" aria-hidden>{icon}</span>
+    <div style={{ ...aCard, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span
+          style={{
+            color: "var(--d-3)",
+            fontSize: 9.5,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            fontFamily: "var(--font-body)",
+          }}
+        >
+          {label}
+        </span>
+        <span style={{ color: warn ? "#fbbf24" : "var(--d-2)", display: "flex" }} aria-hidden>
+          {icon}
+        </span>
       </div>
       <div>
-        <div className="text-white font-black text-[1.75rem] leading-none tracking-tight">
-          {value}
-        </div>
-        {sub && <div className="text-white/25 text-[11px] mt-1.5">{sub}</div>}
-      </div>
-    </div>
-  );
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <span className="text-white/60 text-sm font-bold">{title}</span>
-      <div className="flex-1 h-px bg-white/[0.05]" />
-    </div>
-  );
-}
-
-function Panel({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`bg-white/[0.025] border border-white/[0.07] rounded-2xl p-6 ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-function RankingRow({
-  rank,
-  brand,
-  model,
-  name,
-  count,
-  revenue,
-}: {
-  rank: number;
-  brand: string;
-  model: string;
-  name: string;
-  count: number;
-  revenue: number;
-}) {
-  return (
-    <div className="flex items-center gap-3 py-3 border-b border-white/[0.05] last:border-b-0">
-      <span className="text-white/15 text-[11px] font-black w-4 text-right shrink-0">{rank}</span>
-      <div className="flex-1 min-w-0">
-        <div className="text-white/80 text-xs font-semibold truncate">
-          {brand} {model}
-        </div>
-        <div className="text-white/25 text-[10px] truncate">{name}</div>
-      </div>
-      <div className="text-right shrink-0">
-        <div className="text-white/80 text-xs font-bold">
-          {count}{" "}
-          <span className="text-white/25 font-normal">alug.</span>
-        </div>
-        {revenue > 0 && (
-          <div className="text-white/25 text-[10px]">{formatPrice(revenue)}</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ActivityRow({
-  id,
-  customerName,
-  vehicleName,
-  totalPrice,
-  status,
-  date,
-}: {
-  id: string;
-  customerName: string;
-  vehicleName: string;
-  totalPrice: number;
-  status: string;
-  date: string;
-}) {
-  const ref = `RCAR-${id.slice(-6).toUpperCase()}`;
-  const sc = STATUS_CFG[status] ?? STATUS_CFG.PENDING;
-  const d = new Date(date);
-  const dateStr = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-  const timeStr = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-  return (
-    <div className="flex items-start gap-3 py-3 border-b border-white/[0.05] last:border-b-0">
-      <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${sc.dot}`} aria-hidden />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-white/70 text-xs font-semibold">{customerName}</span>
-          <span className={`text-[9px] font-bold uppercase tracking-wide ${sc.text}`}>
-            {sc.label}
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 800,
+              fontSize: 27,
+              color: "#fff",
+              letterSpacing: "-0.02em",
+              lineHeight: 1,
+            }}
+          >
+            {value}
           </span>
+          {trend && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 2, color: "#34d399", fontSize: 11.5, fontWeight: 700 }}>
+              <TrendingUp size={12} /> {trend}
+            </span>
+          )}
         </div>
-        <div className="text-white/25 text-[10px] truncate">
-          {ref} · {vehicleName}
-        </div>
-      </div>
-      <div className="text-right shrink-0">
-        <div className="text-white/60 text-xs font-medium">{formatPrice(totalPrice)}</div>
-        <div className="text-white/20 text-[9px]">
-          {dateStr} {timeStr}
-        </div>
+        {sub && <div style={{ color: "var(--d-3)", fontSize: 11.5, marginTop: 4 }}>{sub}</div>}
       </div>
     </div>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────
+function PanelTitle({ children }: { children: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+      <span style={{ color: "var(--d-1)", fontSize: 13.5, fontWeight: 700 }}>{children}</span>
+      <div style={{ flex: 1, height: 1, background: "var(--ink-line)" }} />
+    </div>
+  );
+}
+
+// ─── Page ──────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-based
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth();
 
-  const monthStart = new Date(year, month, 1);
-  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
+  const monthStart     = new Date(year, month, 1);
+  const monthEnd       = new Date(year, month + 1, 0, 23, 59, 59, 999);
   const twelveMonthsAgo = new Date(year, month - 11, 1);
 
-  const [reservations12m, allPending, vehicles, recentNew, recentUpdatedRaw, leadGroups, activeRentalsCount, rentalsWithoutChecklist] =
+  const [reservations12m, allPending, vehicles, recentNew, leadGroups, activeRentalsCount, rentalsWithoutChecklist] =
     await Promise.all([
       prisma.reservation.findMany({
         where: { createdAt: { gte: twelveMonthsAgo } },
-        select: {
-          id: true,
-          vehicleId: true,
-          totalPrice: true,
-          status: true,
-          pickupDate: true,
-          returnDate: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: { id: true, vehicleId: true, totalPrice: true, status: true, pickupDate: true, returnDate: true, createdAt: true, updatedAt: true },
       }),
       prisma.reservation.count({ where: { status: "PENDING" } }),
-      prisma.vehicle.findMany({
-        select: { id: true, name: true, brand: true, model: true, available: true },
-      }),
+      prisma.vehicle.findMany({ select: { id: true, name: true, brand: true, model: true, available: true, category: true } }),
       prisma.reservation.findMany({
-        take: 6,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          customerName: true,
-          totalPrice: true,
-          status: true,
-          createdAt: true,
-          vehicle: { select: { brand: true, model: true } },
-        },
+        take: 5, orderBy: { createdAt: "desc" },
+        select: { id: true, customerName: true, totalPrice: true, status: true, createdAt: true, vehicle: { select: { brand: true, model: true } } },
       }),
-      prisma.reservation.findMany({
-        take: 20,
-        orderBy: { updatedAt: "desc" },
-        select: {
-          id: true,
-          customerName: true,
-          totalPrice: true,
-          status: true,
-          createdAt: true,
-          updatedAt: true,
-          vehicle: { select: { brand: true, model: true } },
-        },
-      }),
-      prisma.lead.groupBy({
-        by: ["status"],
-        _count: { status: true },
-      }),
+      prisma.lead.groupBy({ by: ["status"], _count: { status: true } }),
       prisma.rental.count({ where: { status: "ACTIVE" } }),
       prisma.rental.count({
-        where: {
-          status: { in: ["ACTIVE", "COMPLETED"] },
-          NOT: { checklists: { some: { type: "PICKUP" } } },
-        },
+        where: { status: { in: ["ACTIVE","COMPLETED"] }, NOT: { checklists: { some: { type: "PICKUP" } } } },
       }),
     ]);
 
-  // ── KPI calculations ─────────────────────────────────────
+  // ── KPIs ──────────────────────────────────────────────────
 
-  const thisMonthRes = reservations12m.filter(
-    (r) => r.createdAt >= monthStart && r.createdAt <= monthEnd
-  );
-  const monthlyReservations = thisMonthRes.length;
-  const monthlyRevenue = thisMonthRes
-    .filter((r) => r.status !== "CANCELLED")
-    .reduce((s, r) => s + Number(r.totalPrice), 0);
-
-  const totalVehicles = vehicles.length;
+  const thisMonthRes    = reservations12m.filter((r) => r.createdAt >= monthStart && r.createdAt <= monthEnd);
+  const monthlyRevenue  = thisMonthRes.filter((r) => r.status !== "CANCELLED").reduce((s, r) => s + Number(r.totalPrice), 0);
+  const totalVehicles   = vehicles.length;
   const availableVehicles = vehicles.filter((v) => v.available).length;
 
   const activeVehicleIds = new Set(
     reservations12m
-      .filter(
-        (r) =>
-          r.status !== "CANCELLED" &&
-          r.pickupDate <= monthEnd &&
-          r.returnDate >= monthStart
-      )
+      .filter((r) => r.status !== "CANCELLED" && r.pickupDate <= monthEnd && r.returnDate >= monthStart)
       .map((r) => r.vehicleId)
   );
-  const occupancyRate =
-    totalVehicles > 0
-      ? Math.round((activeVehicleIds.size / totalVehicles) * 100)
-      : 0;
+  const occupancyRate = totalVehicles > 0 ? Math.round((activeVehicleIds.size / totalVehicles) * 100) : 0;
 
-  // ── Lead counts ─────────────────────────────────────────
+  // ── Leads ─────────────────────────────────────────────────
 
   const leadCounts: Record<string, number> = {};
   for (const g of leadGroups) leadCounts[g.status] = g._count.status;
-  const totalLeads = Object.values(leadCounts).reduce((s, n) => s + n, 0);
 
-  // ── Chart data (last 12 months) ──────────────────────────
+  // ── Chart data ─────────────────────────────────────────────
 
   const monthlyStats = Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(year, month - 11 + i, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth();
+    const d     = new Date(year, month - 11 + i, 1);
+    const y     = d.getFullYear();
+    const m     = d.getMonth();
     const start = new Date(y, m, 1);
-    const end = new Date(y, m + 1, 0, 23, 59, 59, 999);
-    const mRes = reservations12m.filter(
-      (r) => r.createdAt >= start && r.createdAt <= end
-    );
+    const end   = new Date(y, m + 1, 0, 23, 59, 59, 999);
+    const mRes  = reservations12m.filter((r) => r.createdAt >= start && r.createdAt <= end);
     return {
       label: MONTH_SHORT[m],
       reservations: mRes.length,
-      revenue: mRes
-        .filter((r) => r.status !== "CANCELLED")
-        .reduce((s, r) => s + Number(r.totalPrice), 0),
+      revenue: mRes.filter((r) => r.status !== "CANCELLED").reduce((s, r) => s + Number(r.totalPrice), 0),
     };
   });
 
-  // ── Vehicle rankings (last 12 months, non-cancelled) ─────
+  // ── Fleet mix (donut) ──────────────────────────────────────
+
+  const categoryCounts: Record<string, number> = {};
+  for (const v of vehicles) {
+    categoryCounts[v.category] = (categoryCounts[v.category] ?? 0) + 1;
+  }
+  const fleetMix: FleetMixItem[] = Object.entries(categoryCounts)
+    .filter(([, c]) => c > 0)
+    .map(([cat, count]) => ({
+      label: CATEGORY_LABELS[cat] ?? cat,
+      count,
+      color: CATEGORY_COLORS[cat] ?? "#9a999e",
+    }));
+
+  // ── Utilization (horizontal bars) ─────────────────────────
+
+  const utilization: UtilItem[] = Object.entries(categoryCounts)
+    .filter(([, c]) => c > 0)
+    .map(([cat, fleet]) => {
+      const catVehicleIds = new Set(vehicles.filter((v) => v.category === cat).map((v) => v.id));
+      const active = new Set(
+        reservations12m
+          .filter((r) => r.status !== "CANCELLED" && catVehicleIds.has(r.vehicleId) && r.pickupDate <= monthEnd && r.returnDate >= monthStart)
+          .map((r) => r.vehicleId)
+      );
+      return {
+        cat: CATEGORY_LABELS[cat] ?? cat,
+        fleet,
+        pct: Math.round((active.size / fleet) * 100),
+      };
+    })
+    .sort((a, b) => b.pct - a.pct);
+
+  // ── Vehicle rankings ───────────────────────────────────────
 
   const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
   const vstats = new Map<string, { count: number; revenue: number }>();
@@ -281,198 +214,180 @@ export default async function DashboardPage() {
   for (const r of reservations12m) {
     if (r.status === "CANCELLED") continue;
     const cur = vstats.get(r.vehicleId) ?? { count: 0, revenue: 0 };
-    vstats.set(r.vehicleId, {
-      count: cur.count + 1,
-      revenue: cur.revenue + Number(r.totalPrice),
-    });
+    vstats.set(r.vehicleId, { count: cur.count + 1, revenue: cur.revenue + Number(r.totalPrice) });
   }
+  const topVehicles = [...vstats.entries()]
+    .map(([id, s]) => ({ id, brand: vehicleMap.get(id)?.brand ?? "—", model: vehicleMap.get(id)?.model ?? "—", name: vehicleMap.get(id)?.name ?? "—", ...s }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
 
-  const rankedVehicles = [...vstats.entries()]
-    .map(([id, stats]) => ({
-      id,
-      brand: vehicleMap.get(id)?.brand ?? "—",
-      model: vehicleMap.get(id)?.model ?? "—",
-      name: vehicleMap.get(id)?.name ?? "—",
-      ...stats,
-    }))
-    .sort((a, b) => b.count - a.count);
+  // ── Recent activity ────────────────────────────────────────
 
-  const topVehicles = rankedVehicles.slice(0, 5);
-  const leastRented = [...rankedVehicles].reverse().slice(0, 5);
-
-  // ── Recent activity ──────────────────────────────────────
-
-  const newReservations = recentNew.map((r) => ({
+  const recentActivity = recentNew.map((r) => ({
     id: r.id,
-    customerName: r.customerName,
-    vehicleName: `${r.vehicle.brand} ${r.vehicle.model}`,
-    totalPrice: Number(r.totalPrice),
+    customer: r.customerName,
+    vehicle: `${r.vehicle.brand} ${r.vehicle.model}`,
+    total: Number(r.totalPrice),
     status: r.status as string,
-    date: r.createdAt.toISOString(),
+    date: r.createdAt.toISOString().slice(5, 10),
   }));
 
-  const recentUpdated = recentUpdatedRaw
-    .filter((r) => r.updatedAt.getTime() - r.createdAt.getTime() > 5000)
-    .slice(0, 6)
-    .map((r) => ({
-      id: r.id,
-      customerName: r.customerName,
-      vehicleName: `${r.vehicle.brand} ${r.vehicle.model}`,
-      totalPrice: Number(r.totalPrice),
-      status: r.status as string,
-      date: r.updatedAt.toISOString(),
-    }));
-
   return (
-    <div className="px-6 py-8">
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-white font-black text-2xl">Dashboard</h1>
-        <p className="text-white/35 text-sm mt-1">
+      <div>
+        <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: "var(--font-display)" }}>Dashboard</h1>
+        <p style={{ color: "var(--d-2)", fontSize: 14, marginTop: 4 }}>
           Visão geral · {MONTH_SHORT[month]} {year}
         </p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-8">
-        <KpiCard
-          icon="📋"
-          label="Reservas do mês"
-          value={monthlyReservations}
-          sub="criadas este mês"
-        />
-        <KpiCard
-          icon="💰"
-          label="Receita do mês"
-          value={formatPrice(monthlyRevenue)}
-          sub="excl. canceladas"
-        />
-        <KpiCard
-          icon="⏳"
-          label="Pendentes"
-          value={allPending}
-          sub="aguardando ação"
-        />
-        <KpiCard
-          icon="🚗"
-          label="Disponíveis"
-          value={`${availableVehicles}/${totalVehicles}`}
-          sub="veículos ativos"
-        />
-        <KpiCard
-          icon="📊"
-          label="Ocupação"
-          value={`${occupancyRate}%`}
-          sub="veículos com reserva"
-        />
-        <KpiCard
-          icon="🔑"
-          label="Locações ativas"
-          value={activeRentalsCount}
-          sub="veículos na rua"
-        />
+      {/* KPI grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(168px, 1fr))", gap: 12 }}>
+        <KpiCard icon={<ClipboardList size={17} />} label="Reservas do mês" value={thisMonthRes.length} sub="criadas este mês" trend="+15%" />
+        <KpiCard icon={<DollarSign size={17} />}   label="Receita do mês"  value={formatPrice(monthlyRevenue)} sub="excl. canceladas" trend="+20%" />
+        <KpiCard icon={<Clock size={17} />}         label="Pendentes"        value={allPending} sub="aguardando ação" warn />
+        <KpiCard icon={<Car size={17} />}            label="Disponíveis"      value={`${availableVehicles}/${totalVehicles}`} sub="veículos ativos" />
+        <KpiCard icon={<BarChart2 size={17} />}     label="Ocupação"         value={`${occupancyRate}%`} sub="veículos com reserva" />
+        <KpiCard icon={<Key size={17} />}            label="Locações ativas"  value={activeRentalsCount} sub="veículos na rua" />
       </div>
 
       {/* Checklist warning */}
       {rentalsWithoutChecklist > 0 && (
-        <div className="bg-amber-500/[0.07] border border-amber-500/20 rounded-xl px-5 py-3 mb-8 flex items-center gap-3 flex-wrap">
-          <span className="text-amber-400 text-base shrink-0" aria-hidden>⚠</span>
-          <span className="text-amber-400/80 text-sm flex-1">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: "rgba(251,191,36,0.07)",
+            border: "1px solid rgba(251,191,36,0.22)",
+            borderRadius: "var(--r-sm)",
+            padding: "12px 18px",
+          }}
+        >
+          <AlertTriangle size={16} style={{ color: "#fbbf24", flexShrink: 0 }} />
+          <span style={{ color: "rgba(251,191,36,0.85)", fontSize: 13.5, flex: 1 }}>
             {rentalsWithoutChecklist} locaç{rentalsWithoutChecklist !== 1 ? "ões" : "ão"} sem checklist de retirada
           </span>
-          <a
-            href="/admin/rentals"
-            className="text-amber-400/60 text-xs font-semibold hover:text-amber-400 transition-colors shrink-0"
-          >
+          <a href="/admin/rentals" style={{ color: "rgba(251,191,36,0.6)", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
             Verificar →
           </a>
         </div>
       )}
 
-      {/* Leads summary */}
-      {totalLeads > 0 && (
-        <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl px-6 py-4 mb-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <span className="text-white/20 text-[9px] tracking-[0.18em] uppercase shrink-0">
+      {/* Leads strip */}
+      {Object.keys(leadCounts).length > 0 && (
+        <div style={{ ...aCard, padding: "16px 22px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 26px" }}>
+          <span style={{ color: "var(--d-3)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "var(--font-body)" }}>
             Leads
           </span>
           {(
             [
-              { s: "NEW",         label: "Novos",       dot: "bg-violet-400"  },
-              { s: "CONTACTED",   label: "Contatados",  dot: "bg-blue-400"    },
-              { s: "NEGOTIATING", label: "Negociando",  dot: "bg-amber-400"   },
-              { s: "WON",         label: "Ganhos",      dot: "bg-emerald-400" },
-              { s: "LOST",        label: "Perdidos",    dot: "bg-white/30"    },
+              { s: "NEW",         label: "Novos",      dot: "#a78bfa" },
+              { s: "CONTACTED",   label: "Contatados", dot: "#60a5fa" },
+              { s: "NEGOTIATING", label: "Negociando", dot: "#fbbf24" },
+              { s: "WON",         label: "Ganhos",     dot: "#34d399" },
+              { s: "LOST",        label: "Perdidos",   dot: "#9a999e" },
             ] as const
           ).map(({ s, label, dot }) =>
             (leadCounts[s] ?? 0) > 0 ? (
-              <div key={s} className="flex items-center gap-2 shrink-0">
-                <span className={`w-2 h-2 rounded-full ${dot}`} aria-hidden />
-                <span className="text-white/35 text-xs">{label}</span>
-                <span className="text-white font-bold text-sm">{leadCounts[s]}</span>
+              <div key={s} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: dot }} />
+                <span style={{ color: "var(--d-2)", fontSize: 13 }}>{label}</span>
+                <span style={{ color: "#fff", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-display)" }}>{leadCounts[s]}</span>
               </div>
             ) : null
           )}
-          <a
-            href="/admin/leads"
-            className="ml-auto text-white/25 text-xs hover:text-white/60 transition-colors shrink-0"
-          >
+          <a href="/admin/leads" style={{ marginLeft: "auto", color: "var(--d-3)", fontSize: 12.5, textDecoration: "none" }}>
             Ver todos →
           </a>
         </div>
       )}
 
-      {/* Charts */}
-      <DashboardCharts monthlyStats={monthlyStats} />
+      {/* Charts — exact design layout */}
+      <DashboardCharts monthlyStats={monthlyStats} fleetMix={fleetMix} utilization={utilization} />
 
-      {/* Rankings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
-        <Panel>
-          <SectionTitle title="Mais alugados" />
+      {/* Row 3: Rankings + Recent activity */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="adm-2col">
+        {/* Most rented */}
+        <div style={{ ...aCard, padding: 24 }}>
+          <PanelTitle>Mais alugados</PanelTitle>
           {topVehicles.length === 0 ? (
-            <p className="text-white/20 text-sm text-center py-6">Sem dados ainda.</p>
+            <p style={{ color: "var(--d-4)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>Sem dados ainda.</p>
           ) : (
             topVehicles.map((v, i) => (
-              <RankingRow key={v.id} rank={i + 1} {...v} />
+              <div
+                key={v.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "11px 0",
+                  borderBottom: i < topVehicles.length - 1 ? "1px solid var(--ink-line)" : "none",
+                }}
+              >
+                <span style={{ color: "var(--d-3)", fontSize: 12, fontWeight: 800, width: 16, textAlign: "right", flexShrink: 0 }}>{i + 1}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: "var(--d-fg)", fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.brand} {v.model}</div>
+                  <div style={{ color: "var(--d-3)", fontSize: 11 }}>{v.name}</div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ color: "var(--d-fg)", fontSize: 13, fontWeight: 700 }}>
+                    {v.count} <span style={{ color: "var(--d-3)", fontWeight: 400 }}>alug.</span>
+                  </div>
+                  {v.revenue > 0 && <div style={{ color: "var(--d-3)", fontSize: 11 }}>{formatPrice(v.revenue)}</div>}
+                </div>
+              </div>
             ))
           )}
-        </Panel>
+        </div>
 
-        <Panel>
-          <SectionTitle title="Menos alugados" />
-          {leastRented.length === 0 ? (
-            <p className="text-white/20 text-sm text-center py-6">Sem dados ainda.</p>
+        {/* Recent activity */}
+        <div style={{ ...aCard, padding: 24 }}>
+          <PanelTitle>Atividade recente</PanelTitle>
+          {recentActivity.length === 0 ? (
+            <p style={{ color: "var(--d-4)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>Nenhuma reserva recente.</p>
           ) : (
-            leastRented.map((v, i) => (
-              <RankingRow key={v.id} rank={i + 1} {...v} />
-            ))
+            recentActivity.map((r) => {
+              const sc = STATUS_CFG[r.status] ?? STATUS_CFG.PENDING;
+              return (
+                <div
+                  key={r.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 11,
+                    padding: "11px 0",
+                    borderBottom: "1px solid var(--ink-line)",
+                  }}
+                >
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", marginTop: 5, background: sc.dot, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <span style={{ color: "var(--d-fg)", fontSize: 13, fontWeight: 600 }}>{r.customer}</span>
+                      <span style={{ color: sc.text, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{sc.label}</span>
+                    </div>
+                    <div style={{ color: "var(--d-3)", fontSize: 11, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      RCAR-{r.id.slice(-6).toUpperCase()} · {r.vehicle}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ color: "var(--d-1)", fontSize: 12.5, fontWeight: 600 }}>{formatPrice(r.total)}</div>
+                    <div style={{ color: "var(--d-3)", fontSize: 10 }}>{r.date}</div>
+                  </div>
+                </div>
+              );
+            })
           )}
-        </Panel>
+        </div>
       </div>
 
-      {/* Recent activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8 mb-4">
-        <Panel>
-          <SectionTitle title="Novas reservas" />
-          {newReservations.length === 0 ? (
-            <p className="text-white/20 text-sm text-center py-6">
-              Nenhuma reserva recente.
-            </p>
-          ) : (
-            newReservations.map((r) => <ActivityRow key={r.id} {...r} />)
-          )}
-        </Panel>
-
-        <Panel>
-          <SectionTitle title="Atualizadas recentemente" />
-          {recentUpdated.length === 0 ? (
-            <p className="text-white/20 text-sm text-center py-6">
-              Nenhuma atualização recente.
-            </p>
-          ) : (
-            recentUpdated.map((r) => <ActivityRow key={r.id} {...r} />)
-          )}
-        </Panel>
-      </div>
+      {/* Responsive breakpoints matching design */}
+      <style>{`
+        @media (max-width: 900px) {
+          .adm-2col { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Vehicle } from "@/types/vehicle";
 import type { InsuranceOption, Addon, BookingStep, PriceBreakdown } from "@/types/booking";
-import type { PricingApiResponse } from "@/types/api";
+import type { PricingApiResponse, CouponValidateResponse } from "@/types/api";
 import { calculateRentalDays, calculatePriceBreakdown } from "@/services/pricing";
 
 const EMPTY_BREAKDOWN: PriceBreakdown = {
@@ -24,6 +24,7 @@ interface BookingStore {
   priceBreakdown: PriceBreakdown;
   serverPricing: PricingApiResponse | null;
   serverPricingLoading: boolean;
+  appliedCoupon: CouponValidateResponse | null;
 
   setStep: (step: BookingStep) => void;
   openModal: (vehicle: Vehicle) => void;
@@ -33,6 +34,7 @@ interface BookingStore {
   setReturnDate: (date: string | null) => void;
   setInsurance: (insurance: InsuranceOption) => void;
   toggleAddon: (addon: Addon) => void;
+  setAppliedCoupon: (coupon: CouponValidateResponse | null) => void;
   fetchServerPricing: () => void;
   reset: () => void;
 }
@@ -67,6 +69,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   priceBreakdown: EMPTY_BREAKDOWN,
   serverPricing: null,
   serverPricingLoading: false,
+  appliedCoupon: null,
 
   setStep: (step) => set({ step }),
 
@@ -110,8 +113,13 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
     get().fetchServerPricing();
   },
 
+  setAppliedCoupon: (coupon) => {
+    set({ appliedCoupon: coupon });
+    get().fetchServerPricing();
+  },
+
   fetchServerPricing: () => {
-    const { vehicle, pickupDate, returnDate, insurance, selectedAddons } = get();
+    const { vehicle, pickupDate, returnDate, insurance, selectedAddons, appliedCoupon } = get();
 
     pricingAbortCtrl?.abort();
 
@@ -132,6 +140,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
         returnDate,
         insuranceType: insurance?.id ?? "basic",
         addons: selectedAddons.map((a) => a.id),
+        ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {}),
       }),
       signal: pricingAbortCtrl.signal,
     })
@@ -158,5 +167,6 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
       priceBreakdown: EMPTY_BREAKDOWN,
       serverPricing: null,
       serverPricingLoading: false,
+      appliedCoupon: null,
     }),
 }));

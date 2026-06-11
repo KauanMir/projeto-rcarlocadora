@@ -1,8 +1,21 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { MapPin, AlertCircle } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { todayLocal, MAX_RENTAL_DAYS } from "@/utils/dates";
+import { RcarDateRangePicker } from "@/components/ui/RcarDateRangePicker";
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  color: "var(--d-2)",
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: "0.16em",
+  textTransform: "uppercase",
+  marginBottom: 8,
+  fontFamily: "var(--font-body)",
+};
 
 export function DateSelection() {
   const { pickupDate, returnDate, rentalDays, setPickupDate, setReturnDate } = useBookingStore();
@@ -11,78 +24,137 @@ export function DateSelection() {
   const exceedsMaxDays = rentalDays > MAX_RENTAL_DAYS;
 
   return (
-    <div className="flex flex-col gap-8 max-w-2xl">
+    <div style={{ display: "flex", flexDirection: "column", gap: 32, maxWidth: 600 }}>
+      {/* Heading */}
       <div>
-        <h2 className="text-white font-black text-3xl md:text-4xl mb-2">
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <span style={{ width: 22, height: 2, background: "var(--gold)", borderRadius: 2 }} />
+          <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", fontFamily: "var(--font-body)" }}>
+            Etapa 1
+          </span>
+        </div>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(1.9rem, 4vw, 2.8rem)", color: "#fff", letterSpacing: "-0.02em", lineHeight: 1, marginBottom: 10 }}>
           Quando você precisa do veículo?
         </h2>
-        <p className="text-white/40">Selecione o período da sua locação.</p>
+        <p style={{ color: "var(--d-2)", fontSize: 15, lineHeight: 1.6 }}>Selecione o período da sua locação.</p>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-white/50 text-xs tracking-widest uppercase font-medium">
-            Data de Retirada
-          </label>
-          <input
-            type="date"
-            min={today}
-            value={pickupDate ?? ""}
-            onChange={(e) => setPickupDate(e.target.value || null)}
-            className="w-full bg-white/[0.04] border border-white/10 rounded-sm text-white px-4 py-4 text-sm outline-none focus:border-white/30 hover:border-white/20 transition-colors [color-scheme:dark] cursor-pointer"
-          />
-        </div>
+      {/* Card container */}
+      <div
+        style={{
+          padding: 2,
+          borderRadius: "calc(var(--r-md) + 4px)",
+          background: "linear-gradient(160deg, rgba(255,184,0,0.35), rgba(255,184,0,0.03) 50%, rgba(255,255,255,0.03))",
+        }}
+      >
+        <div
+          style={{
+            background: "var(--ink-card)",
+            borderRadius: "var(--r-md)",
+            padding: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
+          {/* Location — informational card, not editable */}
+          <div>
+            <label style={labelStyle}>Local de retirada</label>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "rgba(255,184,0,0.05)",
+                border: "1px solid rgba(255,184,0,0.2)",
+                borderLeft: "3px solid var(--gold)",
+                borderRadius: "var(--r-sm)",
+                padding: "12px 14px",
+              }}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <MapPin size={18} style={{ color: "var(--gold)", flexShrink: 0 }} />
+                <span>
+                  <div style={{ color: "#fff", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-body)" }}>
+                    Loja RCAR — Gama/DF
+                  </div>
+                  <div style={{ color: "var(--d-3)", fontSize: 11, marginTop: 1 }}>
+                    Único ponto de retirada
+                  </div>
+                </span>
+              </span>
+            </div>
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-white/50 text-xs tracking-widest uppercase font-medium">
-            Data de Devolução
-          </label>
-          <input
-            type="date"
-            min={pickupDate ?? today}
-            value={returnDate ?? ""}
-            onChange={(e) => setReturnDate(e.target.value || null)}
-            className="w-full bg-white/[0.04] border border-white/10 rounded-sm text-white px-4 py-4 text-sm outline-none focus:border-white/30 hover:border-white/20 transition-colors [color-scheme:dark] cursor-pointer"
+          {/* Premium date range picker — same component as Hero */}
+          <RcarDateRangePicker
+            pickupDate={pickupDate ?? ""}
+            returnDate={returnDate ?? ""}
+            onPickupChange={(d) => setPickupDate(d || null)}
+            onReturnChange={(d) => setReturnDate(d || null)}
+            minDate={today}
           />
         </div>
       </div>
 
+      {/* Rental days badge */}
       {rentalDays > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className={`flex items-center gap-4 border rounded-xl px-6 py-5 w-fit ${
-            exceedsMaxDays
-              ? "bg-red-500/10 border-red-500/30"
-              : "bg-white/[0.04] border-white/10"
-          }`}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 16,
+            padding: "16px 20px",
+            borderRadius: "var(--r-md)",
+            border: "1px solid",
+            width: "fit-content",
+            ...(exceedsMaxDays
+              ? { background: "rgba(248,113,113,0.08)", borderColor: "rgba(248,113,113,0.3)" }
+              : { background: "var(--gold-tint)", borderColor: "rgba(255,184,0,0.25)" }),
+          }}
         >
-          <div
-            className={`w-12 h-12 rounded-sm flex items-center justify-center shrink-0 ${
-              exceedsMaxDays ? "bg-red-500" : "bg-white"
-            }`}
-          >
-            <span className={`font-black text-xl ${exceedsMaxDays ? "text-white" : "text-black"}`}>
+          {exceedsMaxDays ? (
+            <AlertCircle size={24} style={{ color: "#f87171", flexShrink: 0 }} />
+          ) : (
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: "var(--r-sm)",
+                background: "var(--gold)",
+                color: "#181203",
+                display: "grid",
+                placeItems: "center",
+                fontFamily: "var(--font-display)",
+                fontWeight: 800,
+                fontSize: 20,
+                flexShrink: 0,
+              }}
+            >
               {rentalDays}
-            </span>
-          </div>
+            </div>
+          )}
           <div>
             {exceedsMaxDays ? (
               <>
-                <div className="text-red-400 font-semibold">
+                <div style={{ color: "#f87171", fontWeight: 600, fontSize: 14 }}>
                   {rentalDays} dias — período muito longo
                 </div>
-                <div className="text-red-400/60 text-sm">
+                <div style={{ color: "rgba(248,113,113,0.6)", fontSize: 12.5, marginTop: 2 }}>
                   Máximo permitido: {MAX_RENTAL_DAYS} dias
                 </div>
               </>
             ) : (
               <>
-                <div className="text-white font-semibold">
+                <div style={{ color: "#fff", fontWeight: 700, fontSize: 15, fontFamily: "var(--font-display)" }}>
                   {rentalDays} dia{rentalDays > 1 ? "s" : ""} de locação
                 </div>
-                <div className="text-white/40 text-sm">Período confirmado</div>
+                <div style={{ color: "var(--d-2)", fontSize: 12.5, marginTop: 2 }}>
+                  Período confirmado
+                </div>
               </>
             )}
           </div>

@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { MAX_RENTAL_DAYS, MIN_RENTAL_DAYS } from "@/utils/dates";
 import { formatPrice } from "@/utils/format";
 import { BookingProgress } from "./BookingProgress";
 import { PriceSummaryPanel } from "./PriceSummaryPanel";
+import { CouponCard } from "./CouponCard";
 import { DateSelection } from "./steps/DateSelection";
 import { VehicleSelection } from "./steps/VehicleSelection";
 import { InsuranceSelection } from "./steps/InsuranceSelection";
@@ -21,6 +23,48 @@ const STEP_COMPONENTS: Record<BookingStep, React.ComponentType> = {
   3: InsuranceSelection,
   4: AddonsSelection,
   5: BookingSummary,
+};
+
+const backBtn: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "0 22px",
+  height: 46,
+  border: "1px solid var(--ink-line-2)",
+  borderRadius: "var(--r-sm)",
+  color: "var(--d-1)",
+  fontFamily: "var(--font-display)",
+  fontWeight: 600,
+  fontSize: 14,
+  background: "transparent",
+  cursor: "pointer",
+  transition: "all .2s",
+};
+
+const nextBtn: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "0 28px",
+  height: 46,
+  borderRadius: "var(--r-sm)",
+  background: "var(--gold)",
+  color: "#181203",
+  fontFamily: "var(--font-display)",
+  fontWeight: 700,
+  fontSize: 14,
+  border: "none",
+  cursor: "pointer",
+  transition: "background .2s, transform .15s, box-shadow .2s",
+  boxShadow: "0 8px 24px rgba(255,184,0,0.22)",
+};
+
+const nextBtnDisabled: React.CSSProperties = {
+  ...nextBtn,
+  opacity: 0.3,
+  cursor: "not-allowed",
+  boxShadow: "none",
 };
 
 export function BookingPageClient() {
@@ -68,15 +112,15 @@ export function BookingPageClient() {
       <main
         id="booking-main"
         aria-label="Fluxo de reserva"
-        className="min-h-screen bg-[#080808] text-white pt-24 pb-32 lg:pb-16"
+        style={{ minHeight: "100vh", background: "var(--ink)", color: "#fff", paddingTop: 96, paddingBottom: 120 }}
       >
-        <div className="max-w-7xl mx-auto px-6">
+        <div style={{ maxWidth: "var(--maxw, 1240px)", margin: "0 auto", padding: "0 28px" }}>
           {/* Progress */}
-          <div className="mb-12">
+          <div style={{ marginBottom: 52 }}>
             <BookingProgress />
           </div>
 
-          <div className="grid lg:grid-cols-[1fr_300px] gap-10 items-start">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 40, alignItems: "start" }} className="booking-layout">
             {/* ── Step content ── */}
             <div>
               <AnimatePresence mode="wait" custom={direction}>
@@ -86,7 +130,7 @@ export function BookingPageClient() {
                   initial={{ opacity: 0, x: direction * 28 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: direction * -20 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <StepComponent />
                 </motion.div>
@@ -96,32 +140,46 @@ export function BookingPageClient() {
               <nav
                 role="navigation"
                 aria-label="Navegação entre etapas"
-                className="hidden lg:flex items-center justify-between mt-12 pt-8 border-t border-white/[0.07]"
+                className="booking-nav-desktop"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginTop: 48,
+                  paddingTop: 28,
+                  borderTop: "1px solid var(--ink-line)",
+                }}
               >
                 <button
                   onClick={handleBack}
                   disabled={step === 1}
                   aria-label="Voltar para a etapa anterior"
-                  className="px-8 h-11 border border-white/10 text-white/40 hover:text-white hover:border-white/25 active:scale-[0.97] rounded-sm text-sm font-medium transition-all disabled:opacity-20 disabled:pointer-events-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
+                  style={{ ...backBtn, opacity: step === 1 ? 0.2 : 1, pointerEvents: step === 1 ? "none" : "auto" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--d-3)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ink-line-2)"; (e.currentTarget as HTMLElement).style.color = "var(--d-1)"; }}
                 >
-                  ← Voltar
+                  <ArrowLeft size={16} /> Voltar
                 </button>
+
                 {step < 5 && (
                   <button
                     onClick={handleNext}
                     disabled={!able}
                     aria-label="Continuar para a próxima etapa"
-                    className="px-10 h-11 bg-white text-black hover:bg-white/90 active:scale-[0.97] font-bold rounded-sm text-sm transition-all disabled:opacity-20 disabled:pointer-events-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
+                    style={able ? nextBtn : nextBtnDisabled}
+                    onMouseEnter={(e) => { if (able) { (e.currentTarget as HTMLElement).style.background = "var(--gold-soft)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; } }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--gold)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
                   >
-                    Continuar →
+                    Continuar <ArrowRight size={16} />
                   </button>
                 )}
               </nav>
             </div>
 
-            {/* Desktop price summary */}
-            <div className="hidden lg:block relative">
+            {/* Desktop sidebar: price summary + coupon (step 5 only) */}
+            <div className="booking-panel-desktop" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <PriceSummaryPanel />
+              {step === 5 && <CouponCard />}
             </div>
           </div>
         </div>
@@ -131,45 +189,50 @@ export function BookingPageClient() {
       <AnimatePresence>
         {showMobilePrice && (
           <motion.div
-            initial={{ y: 48 }}
+            initial={{ y: 56 }}
             animate={{ y: 0 }}
-            exit={{ y: 48 }}
-            transition={{ type: "spring", stiffness: 420, damping: 36 }}
-            className="lg:hidden fixed z-40"
-            style={{ bottom: "64px", left: 0, right: 0 }}
+            exit={{ y: 56 }}
+            transition={{ type: "spring", stiffness: 400, damping: 36 }}
+            className="booking-mobile-price"
+            style={{
+              position: "fixed",
+              bottom: 64,
+              left: 0,
+              right: 0,
+              zIndex: 40,
+              background: "rgba(10,10,11,0.96)",
+              backdropFilter: "blur(16px)",
+              borderTop: "1px solid var(--ink-line)",
+              padding: "10px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
-            <div
-              className="flex items-center justify-between px-5 py-3 border-t border-white/[0.06]"
-              style={{
-                background: "rgba(10,10,10,0.96)",
-                backdropFilter: "blur(16px)",
-              }}
-            >
-              <div>
-                <div className="text-white/30 text-[9px] tracking-[0.16em] uppercase">Total estimado</div>
-                {serverPricingLoading ? (
-                  <div className="text-white/25 text-sm leading-none mt-1">Calculando...</div>
-                ) : (
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={serverPricing?.total ?? priceBreakdown.total}
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 4 }}
-                      transition={{ duration: 0.16 }}
-                      className="text-white font-black text-xl leading-none mt-0.5"
-                    >
-                      {formatPrice(serverPricing?.total ?? priceBreakdown.total)}
-                    </motion.div>
-                  </AnimatePresence>
-                )}
-              </div>
-              {vehicle && (
-                <div className="text-white/20 text-xs">
-                  {rentalDays} dia{rentalDays !== 1 ? "s" : ""}
-                </div>
+            <div>
+              <div style={{ color: "var(--d-3)", fontSize: 9, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" }}>Total estimado</div>
+              {serverPricingLoading ? (
+                <div style={{ color: "var(--d-3)", fontSize: 14, marginTop: 2 }}>Calculando…</div>
+              ) : (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={serverPricing?.total ?? priceBreakdown.total}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.16 }}
+                    style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22, lineHeight: 1, marginTop: 2 }}
+                  >
+                    {formatPrice(serverPricing?.total ?? priceBreakdown.total)}
+                  </motion.div>
+                </AnimatePresence>
               )}
             </div>
+            {vehicle && (
+              <div style={{ color: "var(--d-3)", fontSize: 12 }}>
+                {rentalDays} dia{rentalDays !== 1 ? "s" : ""}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -178,39 +241,76 @@ export function BookingPageClient() {
       <div
         role="navigation"
         aria-label="Navegação entre etapas"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between gap-3 px-4 pt-3 border-t border-white/[0.07]"
+        className="booking-mobile-nav"
         style={{
-          background: "rgba(8,8,8,0.97)",
-          backdropFilter: "blur(16px)",
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          padding: "12px 16px",
           paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+          background: "rgba(10,10,11,0.97)",
+          backdropFilter: "blur(16px)",
+          borderTop: "1px solid var(--ink-line)",
         }}
       >
         <button
           onClick={handleBack}
           disabled={step === 1}
-          className="px-5 h-11 min-w-[88px] border border-white/10 text-white/40 hover:text-white rounded-sm text-sm font-medium transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-[0.97]"
+          style={{
+            ...backBtn,
+            height: 44,
+            minWidth: 88,
+            opacity: step === 1 ? 0.2 : 1,
+            pointerEvents: step === 1 ? "none" : "auto",
+            padding: "0 14px",
+          }}
         >
-          ← Voltar
+          <ArrowLeft size={15} /> Voltar
         </button>
 
-        <div className="flex-1 text-center">
-          <div className="text-white/20 text-[10px] tracking-[0.16em] uppercase">
-            {step} / 5
-          </div>
+        <div style={{ color: "var(--d-3)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+          {step} / 5
         </div>
 
         {step < 5 ? (
           <button
             onClick={handleNext}
             disabled={!able}
-            className="px-7 h-11 min-w-[120px] bg-white text-black hover:bg-white/90 active:scale-[0.97] font-bold rounded-sm text-sm transition-all disabled:opacity-20 disabled:pointer-events-none"
+            style={{
+              ...(able ? nextBtn : nextBtnDisabled),
+              height: 44,
+              minWidth: 120,
+              padding: "0 18px",
+            }}
           >
-            Continuar →
+            Continuar <ArrowRight size={15} />
           </button>
         ) : (
-          <div className="min-w-[120px]" />
+          <div style={{ minWidth: 120 }} />
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .booking-layout { grid-template-columns: 1fr !important; }
+          .booking-panel-desktop { display: none !important; }
+          .booking-nav-desktop { display: none !important; }
+        }
+        @media (min-width: 901px) {
+          .booking-mobile-price { display: none !important; }
+          .booking-mobile-nav { display: none !important; }
+          .booking-coupon-mobile { display: none !important; }
+        }
+        @media (max-width: 540px) {
+          .booking-layout { padding: 0 4px; }
+        }
+      `}</style>
     </>
   );
 }

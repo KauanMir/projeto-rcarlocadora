@@ -37,20 +37,17 @@ export default async function RentalsPage() {
     })),
   }));
 
-  const activeCount = rentals.filter((r) => r.status === "ACTIVE").length;
+  const activeCount    = rentals.filter((r) => r.status === "ACTIVE").length;
   const scheduledCount = rentals.filter((r) => r.status === "SCHEDULED").length;
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-white font-black text-2xl">Locações</h1>
-        <p className="text-white/35 text-sm mt-1">
-          {rentals.length} locaç{rentals.length !== 1 ? "ões" : "ão"} ·{" "}
-          {activeCount} ativa{activeCount !== 1 ? "s" : ""} ·{" "}
-          {scheduledCount} agendada{scheduledCount !== 1 ? "s" : ""}
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      <div>
+        <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: "var(--font-display)" }}>Locações ativas</h1>
+        <p style={{ color: "var(--d-2)", fontSize: 14, marginTop: 4 }}>
+          {activeCount} ativa{activeCount !== 1 ? "s" : ""} · {scheduledCount} agendada{scheduledCount !== 1 ? "s" : ""} — veículos na rua
         </p>
       </div>
-
       <RentalsClient rentals={rentals} />
     </div>
   );

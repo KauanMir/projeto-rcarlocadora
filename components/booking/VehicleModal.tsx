@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { Users, DoorOpen, Fuel, Cog } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { CATEGORY_LABELS, FUEL_LABELS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
@@ -152,19 +153,19 @@ export function VehicleModal() {
 
               {/* Specs */}
               <dl className="grid grid-cols-4 gap-2 mb-6">
-                {[
-                  { icon: "👥", label: "Lugares",    value: `${modalVehicle.specs.seats}` },
-                  { icon: "🚪", label: "Portas",     value: `${modalVehicle.specs.doors}` },
-                  { icon: "⛽", label: "Combustível", value: FUEL_LABELS[modalVehicle.specs.fuel] },
-                  { icon: "⚙️", label: "Câmbio",     value: modalVehicle.specs.transmission === "automatic" ? "Auto" : "Manual" },
-                ].map((spec) => (
+                {([
+                  { Icon: Users,    label: "Lugares",     value: `${modalVehicle.specs.seats}` },
+                  { Icon: DoorOpen, label: "Portas",      value: `${modalVehicle.specs.doors}` },
+                  { Icon: Fuel,     label: "Combustível", value: FUEL_LABELS[modalVehicle.specs.fuel] },
+                  { Icon: Cog,      label: "Câmbio",      value: modalVehicle.specs.transmission === "automatic" ? "Auto" : "Manual" },
+                ] as const).map(({ Icon, label, value }) => (
                   <div
-                    key={spec.label}
+                    key={label}
                     className="flex flex-col items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-lg p-3"
                   >
-                    <dt className="sr-only">{spec.label}</dt>
-                    <span className="text-lg leading-none" aria-hidden="true">{spec.icon}</span>
-                    <dd className="text-white/35 text-[10px] text-center leading-tight">{spec.value}</dd>
+                    <dt className="sr-only">{label}</dt>
+                    <Icon size={18} className="text-white/40" aria-hidden="true" />
+                    <dd className="text-white/35 text-[10px] text-center leading-tight">{value}</dd>
                   </div>
                 ))}
               </dl>

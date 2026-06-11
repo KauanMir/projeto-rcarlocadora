@@ -99,25 +99,27 @@ model Vehicle {
 }
 
 model Reservation {
-  id            String            @id @default(cuid())
-  vehicleId     String
-  pickupDate    DateTime
-  returnDate    DateTime
-  rentalDays    Int
-  insuranceType InsuranceType
-  addons        Json              @default("[]")
-  subtotal      Decimal           @db.Decimal(10, 2)
-  totalPrice    Decimal           @db.Decimal(10, 2)
-  status        ReservationStatus @default(PENDING)
-  customerName  String
-  customerPhone String
-  notes         String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id              String            @id @default(cuid())
+  vehicleId       String
+  pickupDate      DateTime
+  returnDate      DateTime
+  rentalDays      Int
+  insuranceType   InsuranceType
+  addons          Json              @default("[]")
+  subtotal        Decimal           @db.Decimal(10, 2)
+  totalPrice      Decimal           @db.Decimal(10, 2)
+  couponCode      String?
+  couponDiscount  Decimal?          @db.Decimal(10, 2)
+  status          ReservationStatus @default(PENDING)
+  customerName    String
+  customerPhone   String
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  vehicle       Vehicle           @relation(fields: [vehicleId], references: [id])
-  lead          Lead?
-  rental        Rental?
+  vehicle         Vehicle           @relation(fields: [vehicleId], references: [id])
+  lead            Lead?
+  rental          Rental?
 
   @@index([vehicleId])
   @@index([pickupDate, returnDate])
@@ -125,14 +127,15 @@ model Reservation {
 }
 
 model Lead {
-  id            String      @id @default(cuid())
-  name          String
-  phone         String
-  reservationId String?     @unique
-  status        LeadStatus  @default(NEW)
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String      @id @default(cuid())
+  name            String
+  phone           String
+  vehicleInterest String?
+  reservationId   String?     @unique
+  status          LeadStatus  @default(NEW)
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
 
@@ -188,6 +191,29 @@ model Addon {
   icon        String   @default("✨")
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  type           CouponType
+  value          Decimal    @db.Decimal(10, 2)
+  active         Boolean    @default(true)
+  expiresAt      DateTime?
+  minRentalDays  Int        @default(1)
+  maxUses        Int?
+  currentUses    Int        @default(0)
+  categoryFilter String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([code])
+  @@index([active])
 }
 
 model SeasonalPricing {

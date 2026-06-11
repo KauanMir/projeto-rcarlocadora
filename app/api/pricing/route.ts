@@ -2,25 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { INSURANCE_OPTIONS, ADDONS } from "@/utils/constants";
-import {
-  calculateAdvanceDays,
-  advanceBookingDiscount,
-  longStayDiscount,
-  applyDynamicRules,
-} from "@/services/pricing";
+import { applySeasonalMultiplier } from "@/services/pricing";
 import { calcRentalDays, parseDateUTC, MAX_RENTAL_DAYS, MIN_RENTAL_DAYS } from "@/utils/dates";
 
 const schema = z.object({
-  vehicleId: z.string(),
-  pickupDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  returnDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  vehicleId:     z.string(),
+  pickupDate:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  returnDate:    z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   insuranceType: z.enum(["basic", "intermediate", "premium"]),
-  addons: z.array(z.string()),
+  addons:        z.array(z.string()),
+  couponCode:    z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body   = await request.json();
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
@@ -30,9 +26,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { vehicleId, pickupDate, returnDate, insuranceType, addons: addonIds } = parsed.data;
+    const { vehicleId, pickupDate, returnDate, insuranceType, addons: addonIds, couponCode } = parsed.data;
 
-    // Always calculate server-side — never trust client-provided rentalDays
     const rentalDays = calcRentalDays(pickupDate, returnDate);
 
     if (rentalDays < MIN_RENTAL_DAYS || rentalDays > MAX_RENTAL_DAYS) {
@@ -59,35 +54,54 @@ export async function POST(request: NextRequest) {
       where: {
         active: true,
         startDate: { lte: returnDt },
-        endDate: { gte: pickupDt },
+        endDate:   { gte: pickupDt },
       },
       orderBy: { multiplier: "desc" },
     });
 
     const seasonalMultiplier = seasonal ? Number(seasonal.multiplier) : 1.0;
-    const seasonalName = seasonal?.name ?? null;
+    const seasonalName       = seasonal?.name ?? null;
 
     // Price components
-    const dailyRate = Number(vehicle.dailyRate);
+    const dailyRate       = Number(vehicle.dailyRate);
     const vehicleSubtotal = dailyRate * rentalDays;
 
-    const insurance = INSURANCE_OPTIONS.find((i) => i.id === insuranceType);
+    const insurance    = INSURANCE_OPTIONS.find((i) => i.id === insuranceType);
     const insuranceCost = insurance ? insurance.pricePerDay * rentalDays : 0;
 
     const selectedAddons = ADDONS.filter((a) => addonIds.includes(a.id));
-    const addonsCost = selectedAddons.reduce((sum, a) => sum + a.pricePerDay * rentalDays, 0);
+    const addonsCost     = selectedAddons.reduce((sum, a) => sum + a.pricePerDay * rentalDays, 0);
 
-    const advanceDays = calculateAdvanceDays(pickupDate);
-    const { adjusted, discount } = applyDynamicRules({
-      vehicleSubtotal,
-      insuranceCost,
-      addonsCost,
-      seasonalMultiplier,
-      advanceDays,
-      rentalDays,
-    });
+    // Apply only seasonal multiplier — no automatic discounts
+    const adjustedVehicle = applySeasonalMultiplier({ vehicleSubtotal, seasonalMultiplier });
 
-    const total = adjusted + insuranceCost + addonsCost;
+    // Coupon lookup and validation
+    let couponRecord: { id: string; code: string; type: string; value: number } | null = null;
+    if (couponCode) {
+      const found = await prisma.coupon.findUnique({ where: { code: couponCode.trim().toUpperCase() } });
+      const now = new Date();
+      if (
+        found &&
+        found.active &&
+        (!found.expiresAt || found.expiresAt > now) &&
+        (found.maxUses === null || found.currentUses < found.maxUses) &&
+        rentalDays >= found.minRentalDays
+      ) {
+        couponRecord = { id: found.id, code: found.code, type: found.type, value: Number(found.value) };
+      }
+    }
+
+    // Coupon applied on top of seasonal-adjusted vehicle subtotal
+    let couponAmount = 0;
+    if (couponRecord) {
+      if (couponRecord.type === "PERCENTAGE") {
+        couponAmount = Math.round(adjustedVehicle * (couponRecord.value / 100) * 100) / 100;
+      } else {
+        couponAmount = Math.min(couponRecord.value, adjustedVehicle);
+      }
+    }
+
+    const total = adjustedVehicle + insuranceCost + addonsCost - couponAmount;
 
     return NextResponse.json({
       vehicleSubtotal,
@@ -95,11 +109,11 @@ export async function POST(request: NextRequest) {
       addonsCost,
       seasonalMultiplier,
       seasonalName,
-      advanceDiscount: advanceBookingDiscount(advanceDays),
-      longStayDiscount: longStayDiscount(rentalDays),
-      finalDiscount: discount,
+      finalDiscount:  0,
+      couponCode:     couponRecord?.code ?? null,
+      couponDiscount: couponAmount,
       total: Math.round(total * 100) / 100,
-      days: rentalDays,
+      days:  rentalDays,
     });
   } catch (error) {
     console.error("[POST /api/pricing]", error);

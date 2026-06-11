@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Check } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import type { BookingStep } from "@/types/booking";
 
@@ -24,34 +25,75 @@ export function BookingProgress() {
         return (
           <div key={step} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-2">
+              {/* Circle */}
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 shrink-0 ${
-                  isCompleted
-                    ? "bg-white text-black"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  transition: "all .3s ease",
+                  ...(isCompleted
+                    ? { background: "var(--gold)", color: "#181203" }
                     : isActive
-                    ? "bg-white text-black ring-4 ring-white/20"
-                    : "bg-white/[0.06] text-white/25 border border-white/10"
-                }`}
+                    ? {
+                        background: "var(--gold)",
+                        color: "#181203",
+                        boxShadow: "0 0 0 4px rgba(255,184,0,0.18)",
+                      }
+                    : {
+                        background: "var(--ink-card)",
+                        color: "var(--d-3)",
+                        border: "1px solid var(--ink-line-2)",
+                      }),
+                }}
               >
-                {isCompleted ? "✓" : step}
+                {isCompleted ? (
+                  <Check size={15} strokeWidth={3} />
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 800,
+                      fontSize: 13,
+                    }}
+                  >
+                    {step}
+                  </span>
+                )}
               </div>
+
+              {/* Label */}
               <span
-                className={`text-[10px] tracking-widest uppercase font-medium hidden sm:block transition-colors duration-300 ${
-                  isActive ? "text-white" : isCompleted ? "text-white/50" : "text-white/20"
-                }`}
+                className="hidden sm:block text-[10px] tracking-[0.14em] uppercase transition-colors duration-300"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 700,
+                  color: isActive
+                    ? "var(--gold)"
+                    : isCompleted
+                    ? "var(--d-2)"
+                    : "var(--d-4)",
+                }}
               >
                 {label}
               </span>
             </div>
 
+            {/* Connector line */}
             {index < STEPS.length - 1 && (
-              <div className="flex-1 h-px mx-3 mb-5 sm:mb-0 bg-white/10 relative overflow-hidden">
+              <div
+                className="flex-1 mx-3 mb-5 sm:mb-0 overflow-hidden"
+                style={{ height: 1, background: "var(--ink-line-2)" }}
+              >
                 {isCompleted && (
                   <motion.div
-                    className="absolute inset-0 bg-white/40"
+                    style={{ height: "100%", background: "var(--gold)", transformOrigin: "left" }}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
-                    style={{ transformOrigin: "left" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   />
                 )}

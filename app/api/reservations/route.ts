@@ -4,16 +4,18 @@ import { createReservation, VehicleUnavailableError, VehicleNotFoundError } from
 import { calcRentalDays, MAX_RENTAL_DAYS, MIN_RENTAL_DAYS } from "@/utils/dates";
 
 const schema = z.object({
-  vehicleId: z.string().min(1),
-  pickupDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  returnDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  insuranceType: z.enum(["basic", "intermediate", "premium"]),
-  addons: z.array(z.string()),
-  subtotal: z.number().positive(),
-  totalPrice: z.number().positive(),
-  customerName: z.string().min(2).max(100),
-  customerPhone: z.string().min(8).max(20),
-  notes: z.string().max(500).optional(),
+  vehicleId:       z.string().min(1),
+  pickupDate:      z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  returnDate:      z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  insuranceType:   z.enum(["basic", "intermediate", "premium"]),
+  addons:          z.array(z.string()),
+  subtotal:        z.number().positive(),
+  totalPrice:      z.number().positive(),
+  customerName:    z.string().min(2).max(100),
+  customerPhone:   z.string().min(8).max(20),
+  couponCode:      z.string().optional(),
+  couponDiscount:  z.number().min(0).optional(),
+  notes:           z.string().max(500).optional(),
 });
 
 export async function POST(request: NextRequest) {

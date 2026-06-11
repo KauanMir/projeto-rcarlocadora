@@ -2,14 +2,20 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard, Target, ClipboardList, Key, Calendar, Car, Ticket, Sun, LogOut,
+} from "lucide-react";
+import { LogoMark } from "@/components/brand/LogoMark";
 
 const NAV = [
-  { href: "/admin/dashboard",    label: "Dashboard",  icon: "📊" },
-  { href: "/admin/leads",        label: "Leads",      icon: "🎯" },
-  { href: "/admin/reservations", label: "Reservas",   icon: "📋" },
-  { href: "/admin/rentals",      label: "Locações",   icon: "🔑" },
-  { href: "/admin/calendar",     label: "Calendário", icon: "📅" },
-  { href: "/admin/vehicles",     label: "Veículos",   icon: "🚗" },
+  { href: "/admin/dashboard",    label: "Dashboard",  Icon: LayoutDashboard },
+  { href: "/admin/leads",        label: "Leads",      Icon: Target          },
+  { href: "/admin/reservations", label: "Reservas",   Icon: ClipboardList   },
+  { href: "/admin/rentals",      label: "Locações",   Icon: Key             },
+  { href: "/admin/calendar",     label: "Calendário", Icon: Calendar        },
+  { href: "/admin/vehicles",     label: "Veículos",   Icon: Car             },
+  { href: "/admin/seasons",      label: "Temporadas", Icon: Sun             },
+  { href: "/admin/coupons",      label: "Cupons",     Icon: Ticket          },
 ];
 
 export function AdminSidebar() {
@@ -24,44 +30,113 @@ export function AdminSidebar() {
   return (
     <>
       {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-56 bg-[#0a0a0a] border-r border-white/[0.07] z-30">
+      <aside
+        className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 z-30"
+        style={{
+          width: 232,
+          background: "#0c0c0e",
+          borderRight: "1px solid var(--ink-line)",
+        }}
+      >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/[0.07]">
-          <div className="text-white font-black text-xl tracking-tight">RCAR</div>
-          <div className="text-white/30 text-[10px] tracking-[0.18em] uppercase mt-0.5">
+        <div
+          style={{
+            padding: "22px 22px 20px",
+            borderBottom: "1px solid var(--ink-line)",
+          }}
+        >
+          <LogoMark size={36} />
+          <div
+            style={{
+              color: "var(--d-3)",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              marginTop: 10,
+              fontFamily: "var(--font-body)",
+            }}
+          >
             Painel Admin
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-          {NAV.map((item) => {
-            const active = pathname.startsWith(item.href);
+        <nav
+          style={{
+            flex: 1,
+            padding: "14px 12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+          }}
+        >
+          {NAV.map(({ href, label, Icon }) => {
+            const active = pathname.startsWith(href);
             return (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  active
-                    ? "bg-white/10 text-white"
-                    : "text-white/40 hover:text-white hover:bg-white/[0.05]"
-                }`}
+                key={href}
+                href={href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 13px",
+                  borderRadius: "var(--r-sm)",
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  transition: "all .18s",
+                  textDecoration: "none",
+                  color: active ? "#fff" : "var(--d-2)",
+                  background: active ? "rgba(255,255,255,0.07)" : "transparent",
+                  fontFamily: "var(--font-display)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) (e.currentTarget as HTMLElement).style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) (e.currentTarget as HTMLElement).style.color = "var(--d-2)";
+                }}
               >
-                <span className="text-base" aria-hidden="true">{item.icon}</span>
-                {item.label}
+                <Icon
+                  size={18}
+                  style={{
+                    color: active ? "var(--gold)" : "currentColor",
+                    flexShrink: 0,
+                    transition: "color .18s",
+                  }}
+                />
+                {label}
               </Link>
             );
           })}
         </nav>
 
         {/* Logout */}
-        <div className="px-3 py-4 border-t border-white/[0.07]">
+        <div style={{ padding: "14px 12px", borderTop: "1px solid var(--ink-line)" }}>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-white/30 hover:text-white hover:bg-white/[0.05] transition-all"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              width: "100%",
+              padding: "10px 13px",
+              borderRadius: "var(--r-sm)",
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: "var(--d-2)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "var(--font-display)",
+              transition: "color .18s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--d-2)")}
           >
-            <span aria-hidden="true">→</span>
-            Sair
+            <LogOut size={18} style={{ flexShrink: 0 }} />
+            Sair do painel
           </button>
         </div>
       </aside>
@@ -70,29 +145,61 @@ export function AdminSidebar() {
       <div
         role="navigation"
         aria-label="Navegação admin"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center bg-[#0a0a0a] border-t border-white/[0.07]"
-        style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 flex items-center"
+        style={{
+          paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+          background: "#0c0c0e",
+          borderTop: "1px solid var(--ink-line)",
+          overflowX: "auto",
+          gap: 4,
+          padding: "8px 12px",
+        }}
       >
-        {NAV.map((item) => {
-          const active = pathname.startsWith(item.href);
+        {NAV.map(({ href, label, Icon }) => {
+          const active = pathname.startsWith(href);
           return (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center gap-1 pt-3 pb-1 text-[10px] font-semibold tracking-wide uppercase transition-colors ${
-                active ? "text-white" : "text-white/30"
-              }`}
+              key={href}
+              href={href}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "8px 13px",
+                borderRadius: "var(--r-pill)",
+                fontSize: 12.5,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                textDecoration: "none",
+                background: active ? "var(--gold)" : "rgba(255,255,255,0.04)",
+                color: active ? "#181203" : "var(--d-1)",
+              }}
             >
-              <span className="text-xl" aria-hidden="true">{item.icon}</span>
-              {item.label}
+              <Icon size={15} />
+              {label}
             </Link>
           );
         })}
         <button
           onClick={handleLogout}
-          className="flex-1 flex flex-col items-center gap-1 pt-3 pb-1 text-[10px] font-semibold tracking-wide uppercase text-white/30 hover:text-white transition-colors"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "8px 13px",
+            borderRadius: "var(--r-pill)",
+            fontSize: 12.5,
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+            background: "rgba(255,255,255,0.04)",
+            color: "var(--d-1)",
+            border: "none",
+            cursor: "pointer",
+          }}
         >
-          <span className="text-xl" aria-hidden="true">→</span>
+          <LogOut size={15} />
           Sair
         </button>
       </div>

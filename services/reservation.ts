@@ -3,7 +3,7 @@ import { Prisma, InsuranceType } from "@prisma/client";
 import type { CreateReservationRequest } from "@/types/api";
 import { parseDateUTC } from "@/utils/dates";
 import { INSURANCE_OPTIONS, ADDONS } from "@/utils/constants";
-import { calculateAdvanceDays, applyDynamicRules } from "@/services/pricing";
+import { applySeasonalMultiplier } from "@/services/pricing";
 
 export class VehicleUnavailableError extends Error {
   readonly code = "VEHICLE_UNAVAILABLE" as const;
@@ -67,7 +67,6 @@ export async function createReservation(input: CreateReservationRequest) {
     });
 
     const seasonalMultiplier = seasonal ? Number(seasonal.multiplier) : 1.0;
-    const advanceDays = calculateAdvanceDays(input.pickupDate);
 
     const insurance = INSURANCE_OPTIONS.find((i) => i.id === input.insuranceType);
     const selectedAddons = ADDONS.filter((a) =>
@@ -75,23 +74,45 @@ export async function createReservation(input: CreateReservationRequest) {
     );
 
     const vehicleSubtotal = Number(vehicle.dailyRate) * input.rentalDays;
-    const insuranceCost = insurance ? insurance.pricePerDay * input.rentalDays : 0;
-    const addonsCost = selectedAddons.reduce(
+    const insuranceCost   = insurance ? insurance.pricePerDay * input.rentalDays : 0;
+    const addonsCost      = selectedAddons.reduce(
       (sum, a) => sum + a.pricePerDay * input.rentalDays,
       0
     );
 
-    const { adjusted } = applyDynamicRules({
-      vehicleSubtotal,
-      insuranceCost,
-      addonsCost,
-      seasonalMultiplier,
-      advanceDays,
-      rentalDays: input.rentalDays,
-    });
+    const adjusted = applySeasonalMultiplier({ vehicleSubtotal, seasonalMultiplier });
 
-    const calculatedSubtotal = Math.round(adjusted * 100) / 100;
-    const calculatedTotal = Math.round((adjusted + insuranceCost + addonsCost) * 100) / 100;
+    // Coupon validation and application (re-validated server-side)
+    let appliedCouponCode: string | null = null;
+    let appliedCouponDiscount = 0;
+
+    if (input.couponCode) {
+      const coupon = await tx.coupon.findUnique({
+        where: { code: input.couponCode.trim().toUpperCase() },
+      });
+      const now = new Date();
+      if (
+        coupon &&
+        coupon.active &&
+        (!coupon.expiresAt || coupon.expiresAt > now) &&
+        (coupon.maxUses === null || coupon.currentUses < coupon.maxUses) &&
+        input.rentalDays >= coupon.minRentalDays
+      ) {
+        appliedCouponCode = coupon.code;
+        if (coupon.type === "PERCENTAGE") {
+          appliedCouponDiscount = Math.round(adjusted * (Number(coupon.value) / 100) * 100) / 100;
+        } else {
+          appliedCouponDiscount = Math.min(Number(coupon.value), adjusted);
+        }
+        await tx.coupon.update({
+          where: { id: coupon.id },
+          data: { currentUses: { increment: 1 } },
+        });
+      }
+    }
+
+    const calculatedSubtotal = Math.round((adjusted - appliedCouponDiscount) * 100) / 100;
+    const calculatedTotal    = Math.round((adjusted - appliedCouponDiscount + insuranceCost + addonsCost) * 100) / 100;
 
     const reservation = await tx.reservation.create({
       data: {
@@ -103,6 +124,8 @@ export async function createReservation(input: CreateReservationRequest) {
         addons: input.addons as Prisma.InputJsonValue,
         subtotal: new Prisma.Decimal(calculatedSubtotal),
         totalPrice: new Prisma.Decimal(calculatedTotal),
+        couponCode: appliedCouponCode,
+        couponDiscount: appliedCouponDiscount > 0 ? new Prisma.Decimal(appliedCouponDiscount) : null,
         status: "PENDING",
         customerName: input.customerName,
         customerPhone: input.customerPhone,

@@ -2,9 +2,7 @@ import type { Vehicle } from "@/types/vehicle";
 import type { InsuranceOption, Addon, PriceBreakdown } from "@/types/booking";
 import { parseDateUTC, MIN_RENTAL_DAYS } from "@/utils/dates";
 
-// ─── Dynamic pricing rules (pure — no DB dependencies) ────────────────────────
-
-/** Days booked in advance before pickup date. */
+/** Days booked in advance before pickup date (kept for internal use if needed). */
 export function calculateAdvanceDays(pickupDate: string): number {
   const todayUTC = new Date();
   todayUTC.setUTCHours(12, 0, 0, 0);
@@ -12,37 +10,15 @@ export function calculateAdvanceDays(pickupDate: string): number {
   return Math.max(Math.floor((pickup.getTime() - todayUTC.getTime()) / 86_400_000), 0);
 }
 
-/** 0.05 for ≥7 days advance, 0.10 for ≥14 days advance, else 0. */
-export function advanceBookingDiscount(advanceDays: number): number {
-  if (advanceDays >= 14) return 0.10;
-  if (advanceDays >= 7) return 0.05;
-  return 0;
-}
-
-/** 0.05 for ≥7 rental days, 0.10 for ≥14 rental days, else 0. */
-export function longStayDiscount(rentalDays: number): number {
-  if (rentalDays >= 14) return 0.10;
-  if (rentalDays >= 7) return 0.05;
-  return 0;
-}
-
 /**
- * Applies seasonal multiplier and discounts to the vehicle subtotal only.
- * Insurance and addons are never adjusted.
- * Combined discount is capped at 15%.
+ * Applies only the seasonal multiplier to the vehicle subtotal.
+ * No automatic discounts — only coupon discounts are allowed.
  */
-export function applyDynamicRules(params: {
+export function applySeasonalMultiplier(params: {
   vehicleSubtotal: number;
-  insuranceCost: number;
-  addonsCost: number;
   seasonalMultiplier: number;
-  advanceDays: number;
-  rentalDays: number;
-}): { adjusted: number; discount: number } {
-  const { vehicleSubtotal, seasonalMultiplier, advanceDays, rentalDays } = params;
-  const discount = Math.min(advanceBookingDiscount(advanceDays) + longStayDiscount(rentalDays), 0.15);
-  const adjusted = vehicleSubtotal * seasonalMultiplier * (1 - discount);
-  return { adjusted, discount };
+}): number {
+  return params.vehicleSubtotal * params.seasonalMultiplier;
 }
 
 export function calculateRentalDays(pickupDate: string, returnDate: string): number {

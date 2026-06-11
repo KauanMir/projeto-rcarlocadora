@@ -13,6 +13,8 @@ export interface CreateReservationRequest {
   totalPrice: number;
   customerName: string;
   customerPhone: string;
+  couponCode?: string;
+  couponDiscount?: number;
   notes?: string;
 }
 
@@ -23,6 +25,7 @@ export interface PricingRequest {
   rentalDays: number;
   insuranceType: InsuranceTier;
   addons: AddonId[];
+  couponCode?: string;
 }
 
 // ─── Response shapes ──────────────────────────────────────────
@@ -54,17 +57,24 @@ export interface ReservationApiResponse {
   createdAt: string;
 }
 
+export interface CouponValidateResponse {
+  id:    string;
+  code:  string;
+  type:  "PERCENTAGE" | "FIXED";
+  value: number;
+}
+
 export interface PricingApiResponse {
-  vehicleSubtotal: number;
-  insuranceCost: number;
-  addonsCost: number;
+  vehicleSubtotal:  number;
+  insuranceCost:    number;
+  addonsCost:       number;
   seasonalMultiplier: number;
-  seasonalName: string | null;
-  advanceDiscount: number;
-  longStayDiscount: number;
-  finalDiscount: number;
-  total: number;
-  days: number;
+  seasonalName:     string | null;
+  finalDiscount:    number;
+  couponCode:       string | null;
+  couponDiscount:   number;
+  total:            number;
+  days:             number;
 }
 
 export interface ApiError {
