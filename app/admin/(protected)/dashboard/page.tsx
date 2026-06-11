@@ -283,11 +283,13 @@ export default async function DashboardPage() {
           </span>
           {(
             [
-              { s: "NEW",         label: "Novos",      dot: "#a78bfa" },
-              { s: "CONTACTED",   label: "Contatados", dot: "#60a5fa" },
-              { s: "NEGOTIATING", label: "Negociando", dot: "#fbbf24" },
-              { s: "WON",         label: "Ganhos",     dot: "#34d399" },
-              { s: "LOST",        label: "Perdidos",   dot: "#9a999e" },
+              { s: "NEW",         label: "Novos",       dot: "#a78bfa" },
+              { s: "CONTACTED",   label: "Em contato",  dot: "#60a5fa" },
+              { s: "NEGOTIATING", label: "Negociando",  dot: "#fbbf24" },
+              { s: "AWAITING",    label: "Ag. retorno", dot: "#fb923c" },
+              { s: "WON",         label: "Convertidos", dot: "#34d399" },
+              { s: "CAR_RENTED",  label: "Alugados",    dot: "#22d3ee" },
+              { s: "LOST",        label: "Perdidos",    dot: "#9a999e" },
             ] as const
           ).map(({ s, label, dot }) =>
             (leadCounts[s] ?? 0) > 0 ? (
