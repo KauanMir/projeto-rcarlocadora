@@ -32,8 +32,7 @@ export function PriceSummaryPanel() {
   const { vehicle, rentalDays, insurance, selectedAddons, priceBreakdown, serverPricing, serverPricingLoading } =
     useBookingStore();
   const displayTotal = serverPricing?.total ?? priceBreakdown.total;
-  const hasDiscount = serverPricing && serverPricing.finalDiscount > 0;
-  const hasSeasonalSurcharge = serverPricing && serverPricing.seasonalMultiplier > 1;
+  const hasCoupon    = serverPricing && serverPricing.couponDiscount > 0;
 
   return (
     /* gold-angle gradient border */
@@ -146,9 +145,9 @@ export function PriceSummaryPanel() {
                       value={addon.pricePerDay * rentalDays}
                     />
                   ))}
-                  {hasSeasonalSurcharge && serverPricing && (
+                  {hasCoupon && serverPricing && (
                     <motion.div
-                      key="seasonal"
+                      key="coupon"
                       layout
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
@@ -156,30 +155,11 @@ export function PriceSummaryPanel() {
                       className="overflow-hidden"
                     >
                       <div className="flex items-center justify-between py-1.5">
-                        <span style={{ color: "#fbbf24", fontSize: 12.5, fontWeight: 600 }}>
-                          {serverPricing.seasonalName} (+{Math.round((serverPricing.seasonalMultiplier - 1) * 100)}%)
+                        <span style={{ color: "#a78bfa", fontSize: 12.5, fontWeight: 600 }}>
+                          Cupom {serverPricing.couponCode}
                         </span>
-                        <span style={{ color: "#fbbf24", fontSize: 12.5, fontWeight: 700 }}>
-                          +{formatPrice(Math.round(serverPricing.vehicleSubtotal * (serverPricing.seasonalMultiplier - 1)))}
-                        </span>
-                      </div>
-                    </motion.div>
-                  )}
-                  {hasDiscount && serverPricing && (
-                    <motion.div
-                      key="discount"
-                      layout
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="flex items-center justify-between py-1.5">
-                        <span style={{ color: "#34d399", fontSize: 12.5, fontWeight: 600 }}>
-                          Desconto (−{Math.round(serverPricing.finalDiscount * 100)}%)
-                        </span>
-                        <span style={{ color: "#34d399", fontSize: 12.5, fontWeight: 700 }}>
-                          −{formatPrice(Math.round(serverPricing.vehicleSubtotal * serverPricing.seasonalMultiplier * serverPricing.finalDiscount))}
+                        <span style={{ color: "#a78bfa", fontSize: 12.5, fontWeight: 700 }}>
+                          −{formatPrice(serverPricing.couponDiscount)}
                         </span>
                       </div>
                     </motion.div>

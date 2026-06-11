@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, ArrowRight, ArrowLeft, Star } from "lucide-react";
+import { MapPin, ArrowRight, ArrowLeft, Star, ExternalLink, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useBookingStore } from "@/store/bookingStore";
 import { todayLocal } from "@/utils/dates";
 import { SHOWROOM_CATEGORIES, HERO_STATS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
+import { RcarDateRangePicker } from "@/components/ui/RcarDateRangePicker";
 
 const CAROUSEL_IDS = [
   "suv-especial",
@@ -168,6 +170,131 @@ function VehicleCarousel() {
   );
 }
 
+const MAPS_URL =
+  "https://www.google.com/maps?gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQIxgnMggIAhAAGBYYHjIICAMQABgWGB4yCggEEAAYgAQYogQyBggFEEUYPTIGCAYQRRg8MgYIBxBFGD3SAQgyMzY3ajBqN6gCALACAA&um=1&ie=UTF-8&fb=1&gl=br&sa=X&geocode=KaN4y6mkgVmTMWtkdz2yMePc&daddr=Q+QUADRA+36+COMERCIO+LOCAL+A/E+GAMA,+St.+Leste,+Bras%C3%ADlia+-+DF,+72465-365";
+
+const CATEGORY_OPTIONS = [
+  { value: "",         label: "Todos os veículos" },
+  { value: "economy",  label: "Econômico" },
+  { value: "sedan",    label: "Sedan" },
+  { value: "suv",      label: "SUV" },
+  { value: "minivan",  label: "Minivan" },
+  { value: "pickup",   label: "Picape" },
+];
+
+function CategorySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selected = CATEGORY_OPTIONS.find((o) => o.value === value) ?? CATEGORY_OPTIONS[0];
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%",
+          background: "rgba(255,255,255,0.05)",
+          border: `1px solid ${open ? "rgba(255,184,0,0.45)" : "var(--ink-line-2)"}`,
+          borderRadius: "var(--r-sm)",
+          color: value ? "#fff" : "rgba(255,255,255,0.45)",
+          fontSize: 14.5,
+          padding: "14px 14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          cursor: "pointer",
+          fontFamily: "var(--font-body)",
+          fontWeight: 600,
+          transition: "border-color .2s",
+          outline: "none",
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {value && (
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", flexShrink: 0 }} />
+          )}
+          {selected.label}
+        </span>
+        <ChevronDown
+          size={16}
+          style={{ color: "var(--d-3)", flexShrink: 0, transition: "transform .2s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <div style={{ position: "fixed", inset: 0, zIndex: 10 }} onClick={() => setOpen(false)} aria-hidden />
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                position: "absolute",
+                top: "calc(100% + 6px)",
+                left: 0,
+                right: 0,
+                zIndex: 20,
+                background: "#111113",
+                border: "1px solid var(--ink-line-2)",
+                borderRadius: "var(--r-md)",
+                overflow: "hidden",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.04)",
+              }}
+            >
+              {CATEGORY_OPTIONS.map((o) => {
+                const isSelected = o.value === value;
+                return (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => { onChange(o.value); setOpen(false); }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "12px 16px",
+                      background: isSelected ? "rgba(255,184,0,0.08)" : "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      color: isSelected ? "var(--gold)" : "var(--d-1)",
+                      fontSize: 14,
+                      fontWeight: isSelected ? 700 : 500,
+                      textAlign: "left",
+                      fontFamily: "var(--font-body)",
+                      transition: "background .15s, color .15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.05)";
+                        (e.currentTarget as HTMLElement).style.color = "#fff";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        (e.currentTarget as HTMLElement).style.background = "transparent";
+                        (e.currentTarget as HTMLElement).style.color = "var(--d-1)";
+                      }
+                    }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: isSelected ? "var(--gold)" : "rgba(255,255,255,0.18)", flexShrink: 0 }} />
+                    {o.label}
+                    {isSelected && (
+                      <span style={{ marginLeft: "auto", color: "var(--gold)", fontSize: 12, fontWeight: 700 }}>✓</span>
+                    )}
+                  </button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function HeroBookingCard() {
   const router = useRouter();
   const { setPickupDate, setReturnDate, setStep } = useBookingStore();
@@ -242,63 +369,59 @@ function HeroBookingCard() {
 
         {/* Fields */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Fixed location */}
+          {/* Fixed location — informational card, not editable */}
           <div>
             <label style={labelStyle}>Local de retirada</label>
-            <div style={{ ...fieldStyle, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                <MapPin size={16} style={{ color: "var(--gold)" }} /> Loja RCAR — Gama-DF
+            <a
+              href={MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "rgba(255,184,0,0.05)",
+                border: "1px solid rgba(255,184,0,0.2)",
+                borderLeft: "3px solid var(--gold)",
+                borderRadius: "var(--r-sm)",
+                padding: "12px 14px",
+                textDecoration: "none",
+                cursor: "pointer",
+                transition: "background .2s",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,184,0,0.09)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,184,0,0.05)"; }}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <MapPin size={18} style={{ color: "var(--gold)", flexShrink: 0 }} />
+                <span>
+                  <div style={{ color: "#fff", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-body)" }}>
+                    Loja RCAR — Gama/DF
+                  </div>
+                  <div style={{ color: "var(--d-3)", fontSize: 11, marginTop: 1 }}>
+                    Único ponto de retirada
+                  </div>
+                </span>
               </span>
-              <span style={{ color: "var(--d-3)", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Único ponto</span>
-            </div>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--d-3)", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                Ver rota <ExternalLink size={11} />
+              </span>
+            </a>
           </div>
 
           {/* Dates */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={labelStyle}>Retirada</label>
-              <input
-                type="date"
-                min={today}
-                value={pickup}
-                onChange={(e) => { setPickup(e.target.value); if (ret && e.target.value > ret) setRet(""); }}
-                style={fieldStyle}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Devolução</label>
-              <input
-                type="date"
-                min={pickup || today}
-                value={ret}
-                onChange={(e) => setRet(e.target.value)}
-                style={fieldStyle}
-              />
-            </div>
-          </div>
+          <RcarDateRangePicker
+            pickupDate={pickup}
+            returnDate={ret}
+            onPickupChange={(d) => { setPickup(d); if (ret && d > ret) setRet(""); }}
+            onReturnChange={setRet}
+            minDate={today}
+          />
 
           {/* Category */}
           <div>
             <label style={labelStyle}>Categoria desejada</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              style={{
-                ...fieldStyle,
-                cursor: "pointer",
-                appearance: "none",
-                backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'><path d='M4 6l4 4 4-4'/></svg>\")",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 14px center",
-              }}
-            >
-              <option value="" style={{ background: "#16161a" }}>Todos os veículos</option>
-              <option value="economy" style={{ background: "#16161a" }}>Econômico</option>
-              <option value="sedan" style={{ background: "#16161a" }}>Sedan</option>
-              <option value="suv" style={{ background: "#16161a" }}>SUV</option>
-              <option value="minivan" style={{ background: "#16161a" }}>Minivan</option>
-              <option value="pickup" style={{ background: "#16161a" }}>Picape</option>
-            </select>
+            <CategorySelect value={category} onChange={setCategory} />
           </div>
 
           {/* CTA */}

@@ -34,7 +34,7 @@ export function Footer() {
         <div className="foot-grid" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1.2fr", gap: 40 }}>
           {/* Brand column */}
           <div>
-            <LogoMark size={32} />
+            <LogoMark size={56} />
             <p style={{ color: "var(--d-2)", fontSize: 14, lineHeight: 1.7, maxWidth: 280, marginTop: 18 }}>
               Locadora de veículos no Gama-DF. Carros revisados, reservas rápidas e atendimento humanizado pelo WhatsApp.
             </p>

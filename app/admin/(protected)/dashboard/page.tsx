@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DashboardCharts, type FleetMixItem, type UtilItem } from "@/components/admin/DashboardCharts";
 import { formatPrice } from "@/utils/format";
-import { AlertTriangle, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp, ClipboardList, DollarSign, Clock, Car, BarChart2, Key } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -47,7 +47,7 @@ function KpiCard({
   trend,
   warn,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string | number;
   sub?: string;
@@ -69,7 +69,7 @@ function KpiCard({
         >
           {label}
         </span>
-        <span style={{ color: warn ? "#fbbf24" : "var(--d-2)", fontSize: 17 }} aria-hidden>
+        <span style={{ color: warn ? "#fbbf24" : "var(--d-2)", display: "flex" }} aria-hidden>
           {icon}
         </span>
       </div>
@@ -244,12 +244,12 @@ export default async function DashboardPage() {
 
       {/* KPI grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(168px, 1fr))", gap: 12 }}>
-        <KpiCard icon="📋" label="Reservas do mês" value={thisMonthRes.length} sub="criadas este mês" trend="+15%" />
-        <KpiCard icon="💰" label="Receita do mês"  value={formatPrice(monthlyRevenue)} sub="excl. canceladas" trend="+20%" />
-        <KpiCard icon="⏳" label="Pendentes"        value={allPending} sub="aguardando ação" warn />
-        <KpiCard icon="🚗" label="Disponíveis"      value={`${availableVehicles}/${totalVehicles}`} sub="veículos ativos" />
-        <KpiCard icon="📊" label="Ocupação"         value={`${occupancyRate}%`} sub="veículos com reserva" />
-        <KpiCard icon="🔑" label="Locações ativas"  value={activeRentalsCount} sub="veículos na rua" />
+        <KpiCard icon={<ClipboardList size={17} />} label="Reservas do mês" value={thisMonthRes.length} sub="criadas este mês" trend="+15%" />
+        <KpiCard icon={<DollarSign size={17} />}   label="Receita do mês"  value={formatPrice(monthlyRevenue)} sub="excl. canceladas" trend="+20%" />
+        <KpiCard icon={<Clock size={17} />}         label="Pendentes"        value={allPending} sub="aguardando ação" warn />
+        <KpiCard icon={<Car size={17} />}            label="Disponíveis"      value={`${availableVehicles}/${totalVehicles}`} sub="veículos ativos" />
+        <KpiCard icon={<BarChart2 size={17} />}     label="Ocupação"         value={`${occupancyRate}%`} sub="veículos com reserva" />
+        <KpiCard icon={<Key size={17} />}            label="Locações ativas"  value={activeRentalsCount} sub="veículos na rua" />
       </div>
 
       {/* Checklist warning */}

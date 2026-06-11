@@ -19,6 +19,7 @@ export default async function LeadsPage() {
 
   const leads = rows.map((l) => ({
     id: l.id, name: l.name, phone: l.phone,
+    vehicleInterest: l.vehicleInterest ?? null,
     status: l.status as string, notes: l.notes ?? null,
     createdAt: l.createdAt.toISOString(),
     reservation: l.reservation

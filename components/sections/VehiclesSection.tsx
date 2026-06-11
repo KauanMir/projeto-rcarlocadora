@@ -122,19 +122,29 @@ function FleetCard({ category, index }: { category: ShowroomCategory; index: num
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 7,
+              gap: 8,
+              padding: "9px 16px 9px 18px",
+              borderRadius: "var(--r-sm)",
+              background: hov ? "var(--gold)" : "rgba(255,184,0,0.10)",
+              border: `1px solid ${hov ? "var(--gold)" : "rgba(255,184,0,0.35)"}`,
               fontFamily: "var(--font-display)",
               fontWeight: 700,
               fontSize: 13.5,
-              color: hov ? "var(--gold-deep)" : "var(--graphite)",
-              transition: "color .25s",
+              color: hov ? "#181203" : "var(--gold)",
+              transition: "all .2s",
               textDecoration: "none",
+              boxShadow: hov ? "0 4px 18px rgba(255,184,0,0.22)" : "none",
             }}
           >
             Reservar
-            <span style={{ display: "grid", placeItems: "center", width: 30, height: 30, borderRadius: "50%", background: hov ? "var(--gold)" : "var(--graphite)", color: hov ? "#181203" : "#fff", transition: "all .25s", transform: hov ? "translateX(2px)" : "none" }}>
-              <ArrowRight size={15} />
-            </span>
+            <ArrowRight
+              size={15}
+              style={{
+                transition: "transform .2s",
+                transform: hov ? "translateX(3px)" : "none",
+                flexShrink: 0,
+              }}
+            />
           </Link>
         </div>
       </div>

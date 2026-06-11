@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
-import { Check, Fuel, Settings, Users } from "lucide-react";
+import { Check, Fuel, Settings, Users, CalendarX } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { useAvailableVehicles } from "@/hooks/useAvailableVehicles";
 import { FUEL_LABELS } from "@/utils/constants";
@@ -251,8 +251,8 @@ export function VehicleSelection() {
           animate={{ opacity: 1, y: 0 }}
           style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "64px 0", textAlign: "center" }}
         >
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--ink-card)", border: "1px solid var(--ink-line)", display: "grid", placeItems: "center", fontSize: 28 }}>
-            🚫
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--ink-card)", border: "1px solid var(--ink-line)", display: "grid", placeItems: "center" }}>
+            <CalendarX size={26} style={{ color: "var(--d-3)" }} />
           </div>
           <div>
             <p style={{ color: "#fff", fontWeight: 700, fontSize: 17 }}>Sem disponibilidade</p>

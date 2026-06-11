@@ -555,35 +555,6 @@ export function ReservationsClient({
         </div>
       )}
 
-      {/* Mobile cards */}
-      <div className="md:hidden" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {filtered.map((r) => (
-          <div
-            key={r.id}
-            style={{ background: "var(--ink-card)", border: "1px solid var(--ink-line)", borderRadius: "var(--r-md)", padding: 16 }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-              <div>
-                <div style={{ color: "var(--gold)", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, marginBottom: 2 }}>RCAR-{r.id.slice(-6).toUpperCase()}</div>
-                <div style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>{r.customerName}</div>
-                <div style={{ color: "var(--d-2)", fontSize: 12 }}>{r.vehicleName}</div>
-              </div>
-              <StatusBadge status={r.status} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--ink-line)" }}>
-              <span style={{ color: "var(--d-2)", fontSize: 12 }}>
-                {formatDateShort(r.pickupDate.split("T")[0])} → {formatDateShort(r.returnDate.split("T")[0])}
-              </span>
-              <span style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15 }}>{formatPrice(r.totalPrice)}</span>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <button onClick={() => setSelected(r)} style={{ flex: 1, height: 34, border: "1px solid var(--ink-line-2)", borderRadius: "var(--r-sm)", color: "var(--d-2)", fontSize: 12, fontWeight: 600, background: "transparent", cursor: "pointer" }}>Ver detalhes</button>
-              <StatusSelect status={r.status} loading={updatingId === r.id} onChange={(s) => handleStatusChange(r.id, s)} />
-            </div>
-          </div>
-        ))}
-      </div>
-
       <AnimatePresence>
         {selected && (
           <ReservationModal

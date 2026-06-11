@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Target, ClipboardList, Key, Calendar, Car, LogOut,
+  LayoutDashboard, Target, ClipboardList, Key, Calendar, Car, Ticket, Sun, LogOut,
 } from "lucide-react";
 import { LogoMark } from "@/components/brand/LogoMark";
 
@@ -14,6 +14,8 @@ const NAV = [
   { href: "/admin/rentals",      label: "Locações",   Icon: Key             },
   { href: "/admin/calendar",     label: "Calendário", Icon: Calendar        },
   { href: "/admin/vehicles",     label: "Veículos",   Icon: Car             },
+  { href: "/admin/seasons",      label: "Temporadas", Icon: Sun             },
+  { href: "/admin/coupons",      label: "Cupons",     Icon: Ticket          },
 ];
 
 export function AdminSidebar() {
@@ -43,7 +45,7 @@ export function AdminSidebar() {
             borderBottom: "1px solid var(--ink-line)",
           }}
         >
-          <LogoMark size={22} />
+          <LogoMark size={36} />
           <div
             style={{
               color: "var(--d-3)",

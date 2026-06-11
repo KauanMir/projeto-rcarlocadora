@@ -20,15 +20,5 @@ export default async function VehiclesPage() {
     reservationCount: v._count.reservations,
   }));
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: "var(--font-display)" }}>Veículos</h1>
-          <p style={{ color: "var(--d-2)", fontSize: 14, marginTop: 4 }}>{vehicles.length} veículos cadastrados</p>
-        </div>
-      </div>
-      <VehiclesClient vehicles={vehicles} />
-    </div>
-  );
+  return <VehiclesClient vehicles={vehicles} />;
 }

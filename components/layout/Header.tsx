@@ -28,10 +28,10 @@ export function Header() {
       {/* Desktop bar */}
       <div
         className="max-w-[var(--maxw,1240px)] mx-auto px-7 flex items-center justify-between"
-        style={{ height: 74 }}
+        style={{ height: 88 }}
       >
         <Link href="/" aria-label="RCAR — Início">
-          <LogoMark size={32} />
+          <LogoMark size={68} />
         </Link>
 
         {/* Nav links — desktop */}

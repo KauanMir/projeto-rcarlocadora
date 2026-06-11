@@ -8,6 +8,7 @@ import { MAX_RENTAL_DAYS, MIN_RENTAL_DAYS } from "@/utils/dates";
 import { formatPrice } from "@/utils/format";
 import { BookingProgress } from "./BookingProgress";
 import { PriceSummaryPanel } from "./PriceSummaryPanel";
+import { CouponCard } from "./CouponCard";
 import { DateSelection } from "./steps/DateSelection";
 import { VehicleSelection } from "./steps/VehicleSelection";
 import { InsuranceSelection } from "./steps/InsuranceSelection";
@@ -175,9 +176,10 @@ export function BookingPageClient() {
               </nav>
             </div>
 
-            {/* Desktop price summary */}
-            <div className="booking-panel-desktop">
+            {/* Desktop sidebar: price summary + coupon (step 5 only) */}
+            <div className="booking-panel-desktop" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <PriceSummaryPanel />
+              {step === 5 && <CouponCard />}
             </div>
           </div>
         </div>
@@ -303,6 +305,7 @@ export function BookingPageClient() {
         @media (min-width: 901px) {
           .booking-mobile-price { display: none !important; }
           .booking-mobile-nav { display: none !important; }
+          .booking-coupon-mobile { display: none !important; }
         }
         @media (max-width: 540px) {
           .booking-layout { padding: 0 4px; }

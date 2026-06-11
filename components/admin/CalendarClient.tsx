@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Key, Check, Calendar } from "lucide-react";
 import { useToastStore } from "@/store/toastStore";
 import { formatPrice, formatDateShort } from "@/utils/format";
 
@@ -43,43 +44,24 @@ interface CalendarClientProps {
   month: number;
 }
 
+// ─── Calendar event (pickup or return) ───────────────────────
+
+interface CalEvent {
+  day: number;
+  type: "pickup" | "return";
+  customerName: string;
+  vehicleName: string;
+  status: string;
+  reservation: CalendarReservation;
+}
+
 // ─── Status config ────────────────────────────────────────────
 
-const STATUS_CFG: Record<string, {
-  label: string;
-  bar: string;      // bar background + border
-  barText: string;  // text on bar
-  badge: string;    // badge (modal)
-  dot: string;
-}> = {
-  PENDING:   {
-    label: "Pendente",
-    bar:     "bg-amber-500/30 border border-amber-500/50 hover:bg-amber-500/45",
-    barText: "text-amber-100",
-    badge:   "bg-amber-500/15 text-amber-400 border-amber-500/25",
-    dot:     "bg-amber-400",
-  },
-  CONFIRMED: {
-    label: "Confirmada",
-    bar:     "bg-blue-500/30 border border-blue-500/50 hover:bg-blue-500/45",
-    barText: "text-blue-100",
-    badge:   "bg-blue-500/15 text-blue-400 border-blue-500/25",
-    dot:     "bg-blue-400",
-  },
-  FINISHED:  {
-    label: "Concluída",
-    bar:     "bg-emerald-500/25 border border-emerald-500/40 hover:bg-emerald-500/35",
-    barText: "text-emerald-100",
-    badge:   "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
-    dot:     "bg-emerald-400",
-  },
-  CANCELLED: {
-    label: "Cancelada",
-    bar:     "bg-white/[0.06] border border-white/[0.1] hover:bg-white/[0.1]",
-    barText: "text-white/30",
-    badge:   "bg-white/10 text-white/40 border-white/15",
-    dot:     "bg-white/30",
-  },
+const STATUS_CFG: Record<string, { label: string; dot: string; text: string; bg: string; badge: string; badgeBorder: string }> = {
+  PENDING:   { label: "Pendente",   dot: "#fbbf24", text: "#fbbf24", bg: "rgba(251,191,36,0.12)",  badge: "bg-amber-500/15 text-amber-400 border-amber-500/25",       badgeBorder: "rgba(251,191,36,0.25)"   },
+  CONFIRMED: { label: "Confirmada", dot: "#60a5fa", text: "#60a5fa", bg: "rgba(96,165,250,0.12)",  badge: "bg-blue-500/15 text-blue-400 border-blue-500/25",          badgeBorder: "rgba(96,165,250,0.25)"   },
+  FINISHED:  { label: "Concluída",  dot: "#34d399", text: "#34d399", bg: "rgba(52,211,153,0.12)",  badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25", badgeBorder: "rgba(52,211,153,0.25)"   },
+  CANCELLED: { label: "Cancelada",  dot: "#9a999e", text: "#9a999e", bg: "rgba(154,153,158,0.12)", badge: "bg-white/[0.06] text-white/40 border-white/[0.1]",         badgeBorder: "rgba(154,153,158,0.25)"  },
 };
 const STATUS_OPTIONS: ReservationStatus[] = ["PENDING", "CONFIRMED", "FINISHED", "CANCELLED"];
 const fallbackCfg = STATUS_CFG.PENDING;
@@ -93,40 +75,73 @@ const MONTH_NAMES = [
 ];
 const DOW_SHORT = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
-function daysInMonth(year: number, month: number) {
+function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
-function getDow(year: number, month: number, day: number) {
-  return new Date(Date.UTC(year, month - 1, day)).getUTCDay(); // 0=Sun
+function pad2(n: number) { return String(n).padStart(2, "0"); }
+
+// ─── Event builder ────────────────────────────────────────────
+
+function buildEvents(vehicles: CalendarVehicle[], year: number, month: number): CalEvent[] {
+  const prefix = `${year}-${pad2(month)}-`;
+  const events: CalEvent[] = [];
+
+  for (const v of vehicles) {
+    const vehName = `${v.brand} ${v.model}`;
+    for (const r of v.reservations) {
+      if (r.pickupDate.startsWith(prefix)) {
+        events.push({
+          day: parseInt(r.pickupDate.slice(8, 10)),
+          type: "pickup",
+          customerName: r.customerName,
+          vehicleName: vehName,
+          status: r.status,
+          reservation: r,
+        });
+      }
+      if (r.returnDate.startsWith(prefix) && r.returnDate !== r.pickupDate) {
+        events.push({
+          day: parseInt(r.returnDate.slice(8, 10)),
+          type: "return",
+          customerName: r.customerName,
+          vehicleName: vehName,
+          status: r.status,
+          reservation: r,
+        });
+      }
+    }
+  }
+
+  return events;
 }
 
-function isWeekend(year: number, month: number, day: number) {
-  const d = getDow(year, month, day);
-  return d === 0 || d === 6;
+function evColor(e: CalEvent): string {
+  if (e.status === "CANCELLED") return "#9a999e";
+  if (e.status === "PENDING")   return "#fbbf24";
+  return e.type === "pickup" ? "#60a5fa" : "#34d399";
 }
 
-/** Returns 0-based start/end day indices clamped to the current month. */
-function barSpan(
-  res: CalendarReservation,
-  year: number,
-  month: number,
-  totalDays: number
-): { start: number; end: number; clippedLeft: boolean; clippedRight: boolean } {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const firstDay = `${year}-${pad(month)}-01`;
-  const lastDay  = `${year}-${pad(month)}-${pad(totalDays)}`;
+const evLabel = (e: CalEvent) => e.type === "pickup" ? "Retirada" : "Devolução";
 
-  const clippedLeft  = res.pickupDate  < firstDay;
-  const clippedRight = res.returnDate  > lastDay;
+// ─── Card base style ──────────────────────────────────────────
 
-  const effStart = clippedLeft  ? firstDay : res.pickupDate;
-  const effEnd   = clippedRight ? lastDay   : res.returnDate;
+const aCard: React.CSSProperties = {
+  background: "var(--ink-card)",
+  border: "1px solid var(--ink-line)",
+  borderRadius: "var(--r-md)",
+};
 
-  const start = parseInt(effStart.split("-")[2]) - 1; // 0-based
-  const end   = parseInt(effEnd.split("-")[2])   - 1;
+// ─── Status badge (inline) ────────────────────────────────────
 
-  return { start, end, clippedLeft, clippedRight };
+function StatusBadge({ status }: { status: string }) {
+  const c = scfg(status);
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 700, color: c.text, background: c.bg, borderRadius: "var(--r-pill)", padding: "4px 11px" }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot }} />
+      {c.label}
+    </span>
+  );
 }
 
 // ─── Reservation detail modal ─────────────────────────────────
@@ -145,7 +160,6 @@ function ReservationModal({
   onStatusChange: (id: string, status: ReservationStatus) => Promise<void>;
 }) {
   const ref = `RCAR-${reservation.id.slice(-6).toUpperCase()}`;
-  const c   = scfg(liveStatus);
   const isUpdating = updatingId === reservation.id;
 
   return (
@@ -179,9 +193,7 @@ function ReservationModal({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-sm text-[10px] font-bold tracking-[0.12em] uppercase border ${c.badge}`}>
-              {c.label}
-            </span>
+            <StatusBadge status={liveStatus} />
             <button onClick={onClose} aria-label="Fechar" className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-colors">✕</button>
           </div>
         </div>
@@ -248,7 +260,7 @@ function ReservationModal({
                     {isUpdating ? (
                       <span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" aria-hidden />
                     ) : (
-                      <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} aria-hidden />
+                      <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} aria-hidden style={{ background: sc.dot }} />
                     )}
                     {sc.label}
                     {isCurrent && <span className="text-[9px] opacity-60 font-normal">atual</span>}
@@ -263,220 +275,36 @@ function ReservationModal({
   );
 }
 
-// ─── Reservation bar with tooltip ────────────────────────────
-
-function ReservationBar({
-  reservation,
-  totalDays,
-  year,
-  month,
-  onOpen,
-}: {
-  reservation: CalendarReservation;
-  totalDays: number;
-  year: number;
-  month: number;
-  onOpen: (r: CalendarReservation) => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const c = scfg(reservation.status);
-
-  const { start, end, clippedLeft, clippedRight } = barSpan(reservation, year, month, totalDays);
-  const span = end - start + 1;
-
-  // Percentage-based position inside the days area
-  const leftPct  = (start / totalDays) * 100;
-  const widthPct = (span / totalDays) * 100;
-
-  // Tooltip horizontal alignment: avoid overflow at edges
-  const tooltipAlign =
-    start < totalDays * 0.3  ? "left-0"  :
-    end   > totalDays * 0.7  ? "right-0" :
-    "left-1/2 -translate-x-1/2";
-
-  return (
-    <div
-      className="absolute"
-      style={{ left: `${leftPct}%`, width: `calc(${widthPct}% - 3px)`, top: 9, height: 30 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={() => onOpen(reservation)}
-    >
-      {/* Bar */}
-      <div
-        className={`w-full h-full flex items-center overflow-hidden cursor-pointer transition-all duration-150 ${c.bar} ${
-          clippedLeft  ? "rounded-l-none rounded-r-md" :
-          clippedRight ? "rounded-l-md rounded-r-none" :
-          "rounded-md"
-        }`}
-        aria-label={`${reservation.customerName} — ${reservation.status}`}
-      >
-        {/* Clipped left indicator */}
-        {clippedLeft && (
-          <span className={`shrink-0 text-[8px] ${c.barText} opacity-60 pl-1`}>◄</span>
-        )}
-        <span className={`truncate text-[10px] font-semibold px-1.5 ${c.barText}`}>
-          {reservation.customerName.split(" ")[0]}
-        </span>
-        {/* Clipped right indicator */}
-        {clippedRight && (
-          <span className={`shrink-0 text-[8px] ${c.barText} opacity-60 pr-1 ml-auto`}>►</span>
-        )}
-
-        {/* Active rental indicator */}
-        {reservation.hasActiveRental && (
-          <span className="absolute top-1.5 right-1.5 flex" aria-label="Locação ativa">
-            <span className="absolute w-2 h-2 rounded-full bg-emerald-400 opacity-70 animate-ping" />
-            <span className="relative w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 6px rgba(52,211,153,0.8)" }} />
-          </span>
-        )}
-      </div>
-
-      {/* Tooltip */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.97 }}
-            transition={{ duration: 0.1 }}
-            className={`absolute bottom-full mb-1.5 z-40 w-52 pointer-events-none ${tooltipAlign}`}
-            style={{
-              background: "rgba(10,10,12,0.97)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.09)",
-              borderRadius: 10,
-            }}
-          >
-            <div className="px-3.5 py-3 flex flex-col gap-2">
-              {/* Customer */}
-              <div>
-                <div className="text-white font-semibold text-xs leading-tight">{reservation.customerName}</div>
-                <div className="text-white/35 text-[10px] mt-0.5">{reservation.customerPhone}</div>
-              </div>
-              {/* Period */}
-              <div className="flex items-center gap-1 text-white/50 text-[10px]">
-                <span>{formatDateShort(reservation.pickupDate)}</span>
-                <span className="text-white/20">→</span>
-                <span>{formatDateShort(reservation.returnDate)}</span>
-                <span className="text-white/25 ml-0.5">({reservation.rentalDays}d)</span>
-              </div>
-              {/* Total */}
-              <div className="flex items-center justify-between">
-                <span className="text-white/30 text-[10px]">Total</span>
-                <span className="text-white font-bold text-sm">{formatPrice(reservation.totalPrice)}</span>
-              </div>
-              {/* Status badge */}
-              <div className="pt-1 border-t border-white/[0.07]">
-                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[9px] font-bold tracking-[0.12em] uppercase border ${scfg(reservation.status).badge}`}>
-                  <span className={`w-1 h-1 rounded-full ${scfg(reservation.status).dot}`} aria-hidden />
-                  {scfg(reservation.status).label}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ─── Vehicle row ──────────────────────────────────────────────
-
-const VEHICLE_COL_W = 176; // px — fixed left column width
-const DAY_W         = 36;  // px — per day cell
-
-function VehicleRow({
-  vehicle,
-  totalDays,
-  year,
-  month,
-  todayIdx,
-  onOpen,
-}: {
-  vehicle: CalendarVehicle;
-  totalDays: number;
-  year: number;
-  month: number;
-  todayIdx: number;
-  onOpen: (r: CalendarReservation) => void;
-}) {
-  return (
-    <div className="flex border-b border-white/[0.04] last:border-b-0 group/row hover:bg-white/[0.015] transition-colors">
-      {/* Vehicle name — fixed column */}
-      <div
-        style={{ minWidth: VEHICLE_COL_W, width: VEHICLE_COL_W }}
-        className="shrink-0 flex items-center px-4 border-r border-white/[0.07] h-14"
-      >
-        <div className="min-w-0">
-          <div className="text-white/80 text-xs font-semibold truncate leading-tight">
-            {vehicle.brand} {vehicle.model}
-          </div>
-          <div className="text-white/30 text-[10px] truncate mt-0.5">{vehicle.name}</div>
-        </div>
-      </div>
-
-      {/* Days area — scrolls horizontally */}
-      <div className="flex-1 relative h-14" style={{ minWidth: totalDays * DAY_W }}>
-        {/* Day grid lines */}
-        <div className="absolute inset-0 flex pointer-events-none">
-          {Array.from({ length: totalDays }, (_, i) => (
-            <div
-              key={i}
-              style={{ minWidth: DAY_W, width: DAY_W }}
-              className={`h-full border-r border-white/[0.04] ${
-                i === todayIdx     ? "bg-blue-500/[0.06]"   :
-                isWeekend(year, month, i + 1) ? "bg-white/[0.012]" :
-                ""
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Reservation bars */}
-        {vehicle.reservations.map((res) => (
-          <ReservationBar
-            key={res.id}
-            reservation={res}
-            totalDays={totalDays}
-            year={year}
-            month={month}
-            onOpen={onOpen}
-          />
-        ))}
-
-        {/* Empty state hint */}
-        {vehicle.reservations.length === 0 && (
-          <div className="absolute inset-0 flex items-center pointer-events-none">
-            <span className="text-white/[0.07] text-[10px] pl-3">—</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main CalendarClient ──────────────────────────────────────
-
-const CATEGORY_LABELS: Record<string, string> = {
-  ECONOMY: "Econ.", SEDAN: "Sedan", SUV: "SUV", PREMIUM: "Prem.",
-};
 
 export function CalendarClient({ vehicles, year, month }: CalendarClientProps) {
   const router   = useRouter();
   const addToast = useToastStore((s) => s.add);
 
-  const [selectedRes, setSelectedRes]   = useState<CalendarReservation | null>(null);
-  const [updatingId,  setUpdatingId]    = useState<string | null>(null);
+  const now = new Date();
+  const todayDay =
+    now.getFullYear() === year && now.getMonth() + 1 === month
+      ? now.getDate()
+      : -1;
+
+  const [sel,          setSel]          = useState(todayDay > 0 ? todayDay : 1);
+  const [selectedRes,  setSelectedRes]  = useState<CalendarReservation | null>(null);
+  const [updatingId,   setUpdatingId]   = useState<string | null>(null);
   const [localVehicles, setLocalVehicles] = useState(vehicles);
 
-  const totalDays = daysInMonth(year, month);
+  const totalDays = getDaysInMonth(year, month);
+  const firstDow  = new Date(Date.UTC(year, month - 1, 1)).getUTCDay(); // 0=Sun
 
-  // Today marker
-  const now   = new Date();
-  const todayIdx =
-    now.getFullYear() === year && now.getMonth() + 1 === month
-      ? now.getDate() - 1 // 0-based
-      : -1;
+  // Build month grid cells
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= totalDays; d++) cells.push(d);
+
+  // Build events from vehicle reservations
+  const events      = buildEvents(localVehicles, year, month);
+  const byDay       = (d: number) => events.filter((e) => e.day === d);
+  const selEvents   = byDay(sel);
+  const totalThisMonth = events.length;
 
   // Month navigation
   function navigate(delta: number) {
@@ -486,7 +314,7 @@ export function CalendarClient({ vehicles, year, month }: CalendarClientProps) {
     router.push(`/admin/calendar?year=${y}&month=${m}`);
   }
 
-  // Status change
+  // Status change (PATCH reservation)
   async function handleStatusChange(id: string, status: ReservationStatus) {
     if (updatingId) return;
     setUpdatingId(id);
@@ -516,187 +344,271 @@ export function CalendarClient({ vehicles, year, month }: CalendarClientProps) {
     }
   }
 
-  // Live status for open modal
   const selectedLiveStatus = selectedRes
     ? (localVehicles.flatMap((v) => v.reservations).find((r) => r.id === selectedRes.id)?.status ?? selectedRes.status)
     : "";
 
-  // Total reservations this month
-  const totalThisMonth = localVehicles.reduce((s, v) => s + v.reservations.length, 0);
-
   return (
     <>
-      <div className="px-6 py-8">
+      <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
         {/* ── Page header ── */}
-        <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14 }}>
           <div>
-            <h1 className="text-white font-black text-2xl">Calendário</h1>
-            <p className="text-white/35 text-sm mt-1">
-              {totalThisMonth} reserva{totalThisMonth !== 1 ? "s" : ""} em {MONTH_NAMES[month - 1]} {year}
+            <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: "var(--font-display)" }}>Calendário</h1>
+            <p style={{ color: "var(--d-2)", fontSize: 14, marginTop: 4 }}>
+              {totalThisMonth} movimentações em {MONTH_NAMES[month - 1]} · retiradas e devoluções
             </p>
           </div>
 
-          {/* Month navigation */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate(-1)}
-              aria-label="Mês anterior"
-              className="w-9 h-9 flex items-center justify-center border border-white/10 text-white/40 hover:text-white hover:border-white/25 rounded-lg transition-all active:scale-[0.96]"
-            >
-              ‹
-            </button>
-            <div className="px-5 h-9 flex items-center bg-white/[0.04] border border-white/[0.08] rounded-lg text-white font-semibold text-sm min-w-[160px] justify-center">
-              {MONTH_NAMES[month - 1]} {year}
-            </div>
-            <button
-              onClick={() => navigate(+1)}
-              aria-label="Próximo mês"
-              className="w-9 h-9 flex items-center justify-center border border-white/10 text-white/40 hover:text-white hover:border-white/25 rounded-lg transition-all active:scale-[0.96]"
-            >
-              ›
-            </button>
-          </div>
-        </div>
-
-        {/* ── Legend ── */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          {(["PENDING","CONFIRMED","FINISHED"] as const).map((s) => {
-            const c = scfg(s);
-            return (
-              <div key={s} className="flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-sm ${c.dot} opacity-80`} aria-hidden />
-                <span className="text-white/35 text-[10px] font-medium">{c.label}</span>
-              </div>
-            );
-          })}
-          <div className="flex items-center gap-1.5 ml-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 5px rgba(52,211,153,0.7)" }} aria-hidden />
-            <span className="text-white/35 text-[10px] font-medium">Locação ativa</span>
-          </div>
-          {todayIdx >= 0 && (
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="w-2.5 h-2.5 rounded-sm bg-blue-400/30 border border-blue-400/40" aria-hidden />
-              <span className="text-white/35 text-[10px] font-medium">Hoje</span>
-            </div>
-          )}
-        </div>
-
-        {/* ── Calendar grid ── */}
-        <div
-          className="rounded-xl overflow-hidden border border-white/[0.08]"
-          style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.04)" }}
-        >
-          <div className="flex">
-            {/* ── Fixed left column (vehicle names) ── */}
-            <div
-              style={{ minWidth: VEHICLE_COL_W, width: VEHICLE_COL_W }}
-              className="shrink-0 z-10 bg-[#0a0a0a]"
-            >
-              {/* Column header */}
-              <div
-                className="h-14 flex items-end pb-2.5 px-4 border-b border-r border-white/[0.08] bg-[#0a0a0a]"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            {/* Month navigation */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button
+                onClick={() => navigate(-1)}
+                aria-label="Mês anterior"
+                style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", border: "1px solid var(--ink-line)", color: "var(--d-1)", display: "grid", placeItems: "center", background: "transparent", cursor: "pointer" }}
               >
-                <span className="text-white/20 text-[9px] tracking-[0.2em] uppercase">Veículo</span>
-              </div>
+                ‹
+              </button>
+              <span style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, minWidth: 110, textAlign: "center" }}>
+                {MONTH_NAMES[month - 1]} {year}
+              </span>
+              <button
+                onClick={() => navigate(+1)}
+                aria-label="Próximo mês"
+                style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", border: "1px solid var(--ink-line)", color: "var(--d-1)", display: "grid", placeItems: "center", background: "transparent", cursor: "pointer" }}
+              >
+                ›
+              </button>
+            </div>
 
-              {/* Vehicle name cells */}
-              {localVehicles.map((v) => (
-                <div
-                  key={v.id}
-                  className="h-14 flex items-center px-4 border-b border-r border-white/[0.07] bg-[#0a0a0a] last:border-b-0"
-                >
-                  <div className="min-w-0">
-                    <div className="text-white/80 text-xs font-semibold truncate leading-tight">
-                      {v.brand} {v.model}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-white/25 text-[10px] truncate">{v.name}</span>
-                      {!v.available && (
-                        <span className="shrink-0 text-[8px] text-red-400/60 font-bold uppercase tracking-wide">
-                          inativo
+            {todayDay > 0 && (
+              <button
+                onClick={() => setSel(todayDay)}
+                style={{ height: 34, padding: "0 14px", borderRadius: "var(--r-sm)", border: "1px solid var(--ink-line)", color: "var(--d-1)", fontSize: 12.5, fontWeight: 700, background: "transparent", cursor: "pointer" }}
+              >
+                Hoje
+              </button>
+            )}
+
+            {/* View tabs — "Mês" active by design */}
+            <div style={{ display: "flex", gap: 3, background: "rgba(255,255,255,0.04)", border: "1px solid var(--ink-line)", borderRadius: "var(--r-sm)", padding: 3 }}>
+              {["Mês", "Agenda"].map((v, i) => (
+                <span key={v} style={{ padding: "6px 13px", borderRadius: 6, fontSize: 12.5, fontWeight: 700, background: i === 0 ? "var(--gold)" : "transparent", color: i === 0 ? "#181203" : "var(--d-2)", cursor: "pointer" }}>
+                  {v}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Grid + day panel ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.65fr 1fr", gap: 16, alignItems: "start" }} className="cal-grid">
+          {/* Month grid */}
+          <div style={{ ...aCard, padding: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+              {/* Day-of-week headers */}
+              {DOW_SHORT.map((d) => (
+                <div key={d} style={{ textAlign: "center", color: "var(--d-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", paddingBottom: 6 }}>
+                  {d}
+                </div>
+              ))}
+
+              {/* Day cells */}
+              {cells.map((d, i) => {
+                const evs   = d ? byDay(d) : [];
+                const isToday = d === todayDay;
+                const isSel   = d === sel;
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() => d && setSel(d)}
+                    style={{
+                      minHeight: 92,
+                      borderRadius: "var(--r-sm)",
+                      padding: 7,
+                      position: "relative",
+                      cursor: d ? "pointer" : "default",
+                      border: isSel ? "1px solid var(--gold)" : d ? "1px solid var(--ink-line)" : "none",
+                      background: isSel ? "rgba(255,184,0,0.06)" : isToday ? "rgba(96,165,250,0.06)" : d ? "rgba(255,255,255,0.012)" : "transparent",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                      transition: "border-color .15s",
+                    }}
+                  >
+                    {d && (
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          width: 20,
+                          height: 20,
+                          borderRadius: "50%",
+                          display: "grid",
+                          placeItems: "center",
+                          color: isToday ? "#181203" : isSel ? "var(--gold)" : "var(--d-1)",
+                          background: isToday ? "var(--gold)" : "transparent",
+                        }}>
+                          {d}
+                        </span>
+                        {evs.length > 0 && (
+                          <span style={{ color: "var(--d-3)", fontSize: 9.5, fontWeight: 700 }}>{evs.length}</span>
+                        )}
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {evs.slice(0, 2).map((e, j) => (
+                        <div
+                          key={j}
+                          onClick={(ev) => { ev.stopPropagation(); d && setSel(d); setSelectedRes(e.reservation); }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 5,
+                            background: "rgba(255,255,255,0.04)",
+                            borderLeft: `2px solid ${evColor(e)}`,
+                            borderRadius: 3,
+                            padding: "2px 5px",
+                            overflow: "hidden",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span style={{ color: "var(--d-1)", fontSize: 9.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {e.vehicleName.split(" ").slice(-1)[0]}
+                          </span>
+                        </div>
+                      ))}
+                      {evs.length > 2 && (
+                        <span style={{ color: "var(--d-3)", fontSize: 9.5, fontWeight: 600, paddingLeft: 2 }}>
+                          +{evs.length - 2} mais
                         </span>
                       )}
                     </div>
                   </div>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div style={{ display: "flex", gap: 18, marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--ink-line)", flexWrap: "wrap" }}>
+              {[
+                ["#60a5fa", "Retirada"],
+                ["#34d399", "Devolução"],
+                ["#fbbf24", "Pendente"],
+                ["#9a999e", "Cancelada"],
+              ].map(([c, l]) => (
+                <div key={l} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 3, background: c }} />
+                  <span style={{ color: "var(--d-2)", fontSize: 12 }}>{l}</span>
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* ── Scrollable days area ── */}
-            <div className="flex-1 overflow-x-auto">
-              {/* Day header */}
-              <div
-                className="flex border-b bg-[#0a0a0a]"
-                style={{
-                  minWidth: totalDays * DAY_W,
-                  borderBottom: "1px solid rgba(255,255,255,0.07)"
-                }}
-              >
-                {Array.from({ length: totalDays }, (_, i) => {
-                  const day   = i + 1;
-                  const isToday   = i === todayIdx;
-                  const isWknd    = isWeekend(year, month, day);
-                  const dow       = getDow(year, month, day);
-                  return (
-                    <div
-                      key={i}
-                      style={{ minWidth: DAY_W, width: DAY_W }}
-                      className={`h-14 flex flex-col items-center justify-end pb-2 gap-0.5 border-r border-white/[0.04] ${
-                        isToday ? "bg-blue-500/10" :
-                        isWknd  ? "bg-white/[0.02]" : ""
-                      }`}
-                    >
-                      <span className={`text-[11px] font-bold leading-none ${
-                        isToday ? "text-blue-300" : isWknd ? "text-white/40" : "text-white/55"
-                      }`}>
-                        {day}
-                      </span>
-                      <span className={`text-[8px] leading-none ${
-                        isToday ? "text-blue-400/60" : isWknd ? "text-white/20" : "text-white/18"
-                      }`}>
-                        {DOW_SHORT[dow]}
-                      </span>
-                      {isToday && (
-                        <span className="w-1 h-1 rounded-full bg-blue-400 mt-0.5" aria-label="hoje" />
-                      )}
-                    </div>
-                  );
-                })}
+          {/* ── Day detail panel ── */}
+          <div style={{ ...aCard, padding: 22, position: "sticky", top: 84 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div>
+                <div style={{ color: "var(--gold)", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "var(--font-body)" }}>
+                  {sel === todayDay ? "Hoje" : "Selecionado"}
+                </div>
+                <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 800, marginTop: 6, fontFamily: "var(--font-display)" }}>
+                  {sel} de {MONTH_NAMES[month - 1].toLowerCase()}
+                </h3>
               </div>
-
-              {/* Vehicle rows */}
-              <div style={{ minWidth: totalDays * DAY_W }}>
-                {localVehicles.map((v) => (
-                  <VehicleRow
-                    key={v.id}
-                    vehicle={v}
-                    totalDays={totalDays}
-                    year={year}
-                    month={month}
-                    todayIdx={todayIdx}
-                    onOpen={setSelectedRes}
-                  />
-                ))}
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 26, color: "#fff" }}>
+                  {selEvents.length}
+                </div>
+                <div style={{ color: "var(--d-3)", fontSize: 11 }}>movimentações</div>
               </div>
             </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 18 }}>
+              {selEvents.length === 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "32px 0", textAlign: "center" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.04)", border: "1px solid var(--ink-line)", display: "grid", placeItems: "center", color: "var(--d-3)" }}>
+                    <Calendar size={20} />
+                  </div>
+                  <p style={{ color: "var(--d-3)", fontSize: 13, lineHeight: 1.5 }}>
+                    Nenhuma movimentação<br />neste dia.
+                  </p>
+                </div>
+              ) : (
+                selEvents.map((e, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setSelectedRes(e.reservation)}
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      padding: 14,
+                      borderRadius: "var(--r-sm)",
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid var(--ink-line)",
+                      cursor: "pointer",
+                      transition: "border-color .15s",
+                    }}
+                    onMouseEnter={(el) => { (el.currentTarget as HTMLElement).style.borderColor = "var(--ink-line-2)"; }}
+                    onMouseLeave={(el) => { (el.currentTarget as HTMLElement).style.borderColor = "var(--ink-line)"; }}
+                  >
+                    <div style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: "var(--r-sm)",
+                      flexShrink: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      background: `${evColor(e)}22`,
+                      color: evColor(e),
+                    }}>
+                      {e.type === "pickup" ? <Key size={18} /> : <Check size={18} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                        <span style={{ color: "#fff", fontSize: 13.5, fontWeight: 700 }}>{e.vehicleName}</span>
+                        <span style={{ color: evColor(e), fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                          {evLabel(e)}
+                        </span>
+                      </div>
+                      <div style={{ color: "var(--d-2)", fontSize: 12, marginTop: 3 }}>{e.customerName}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 7 }}>
+                        <StatusBadge status={e.status} />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {selEvents.length > 0 && (
+              <button
+                style={{
+                  width: "100%",
+                  height: 44,
+                  marginTop: 16,
+                  background: "var(--gold)",
+                  color: "#181203",
+                  border: "none",
+                  borderRadius: "var(--r-sm)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "var(--font-display)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                + Nova movimentação
+              </button>
+            )}
           </div>
         </div>
-
-        {/* ── Empty state ── */}
-        {localVehicles.every((v) => v.reservations.length === 0) && (
-          <div className="flex flex-col items-center gap-3 py-12 text-center">
-            <span className="text-4xl opacity-20" aria-hidden>📅</span>
-            <p className="text-white/25 text-sm">
-              Nenhuma reserva em {MONTH_NAMES[month - 1]} {year}.
-            </p>
-          </div>
-        )}
-
-        {/* ── Scroll hint on mobile ── */}
-        <p className="text-white/15 text-[10px] text-center mt-3 md:hidden">
-          ← arraste para ver todos os dias →
-        </p>
       </div>
 
       {/* ── Detail modal ── */}

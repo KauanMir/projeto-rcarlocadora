@@ -2,10 +2,25 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Plus } from "lucide-react";
+import {
+  Check, Plus,
+  MapPinned, Baby, UserRoundPlus, Wifi,
+  type LucideIcon,
+} from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { ADDONS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
+
+// ─── Icon lookup ──────────────────────────────────────────────
+
+const ADDON_ICONS: Record<string, LucideIcon> = {
+  MapPinned,
+  Baby,
+  UserRoundPlus,
+  Wifi,
+};
+
+// ─── Component ────────────────────────────────────────────────
 
 export function AddonsSelection() {
   const { selectedAddons, toggleAddon } = useBookingStore();
@@ -31,6 +46,7 @@ export function AddonsSelection() {
         {ADDONS.map((addon, index) => {
           const isSelected = selectedAddons.some((a) => a.id === addon.id);
           const isHov = hov === addon.id;
+          const Icon = ADDON_ICONS[addon.icon] ?? MapPinned;
 
           return (
             <motion.button
@@ -88,24 +104,28 @@ export function AddonsSelection() {
                 {isSelected ? <Check size={12} strokeWidth={3} /> : <Plus size={12} />}
               </div>
 
-              {/* Icon */}
+              {/* Icon container — 44×44, dark bg, gold icon */}
               <div
                 style={{
-                  width: 46,
-                  height: 46,
-                  borderRadius: "var(--r-sm)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  display: "grid",
+                  placeItems: "center",
                   marginBottom: 14,
-                  fontSize: 22,
                   transition: "background .25s, border-color .25s",
                   ...(isSelected
                     ? { background: "var(--gold-tint)", border: "1px solid rgba(255,184,0,0.25)" }
                     : { background: "var(--ink-card-2)", border: "1px solid var(--ink-line)" }),
                 }}
               >
-                {addon.icon}
+                <Icon
+                  size={20}
+                  style={{
+                    color: isSelected ? "var(--gold)" : "var(--d-2)",
+                    transition: "color .25s",
+                  }}
+                />
               </div>
 
               {/* Name + price */}
