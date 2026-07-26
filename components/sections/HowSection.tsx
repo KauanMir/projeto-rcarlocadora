@@ -1,10 +1,11 @@
 "use client";
 
-import { Car, Sliders, MessageCircle, ArrowRight } from "lucide-react";
+import { Car, Sliders, ArrowRight } from "lucide-react";
 import { HOW_STEPS, WHATSAPP_HREF } from "@/utils/constants";
 import { BOOKING_ENABLED } from "@/lib/feature-flags";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
-const ICONS = { Car, Sliders, MessageCircle } as const;
+const ICONS = { Car, Sliders, MessageCircle: WhatsAppIcon } as const;
 
 export function HowSection() {
   return (
@@ -113,7 +114,7 @@ export function HowSection() {
             onMouseEnter={(e) => { const el = e.currentTarget; el.style.background = "var(--wa-deep)"; el.style.transform = "translateY(-1px)"; }}
             onMouseLeave={(e) => { const el = e.currentTarget; el.style.background = "var(--wa)"; el.style.transform = ""; }}
           >
-            <MessageCircle size={19} /> {BOOKING_ENABLED ? "Começar minha reserva" : "Solicitar cotação agora"}
+            <WhatsAppIcon size={19} /> {BOOKING_ENABLED ? "Começar minha reserva" : "Solicitar cotação agora"}
           </a>
         </div>
       </div>

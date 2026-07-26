@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { WHATSAPP_HREF } from "@/utils/constants";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 const REDIRECT_DELAY_MS = 6000;
 
@@ -51,7 +52,7 @@ export function CatalogModeNotice() {
               placeItems: "center",
             }}
           >
-            <MessageCircle size={26} style={{ color: "var(--gold)" }} />
+            <WhatsAppIcon size={26} style={{ color: "var(--gold)" }} />
           </div>
 
           <h1
@@ -92,7 +93,7 @@ export function CatalogModeNotice() {
                 boxShadow: "0 10px 30px rgba(37,211,102,0.25)",
               }}
             >
-              <MessageCircle size={18} /> Solicitar cotação no WhatsApp
+              <WhatsAppIcon size={18} /> Solicitar cotação no WhatsApp
             </a>
             <a
               href="/"

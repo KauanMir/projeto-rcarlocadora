@@ -1,8 +1,8 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
 import { WHATSAPP_HREF } from "@/utils/constants";
 import { BOOKING_ENABLED } from "@/lib/feature-flags";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 export function CTASection() {
   return (
@@ -63,7 +63,7 @@ export function CTASection() {
             onMouseEnter={(e) => { const el = e.currentTarget; el.style.background = "var(--wa-deep)"; el.style.transform = "translateY(-1px)"; }}
             onMouseLeave={(e) => { const el = e.currentTarget; el.style.background = "var(--wa)"; el.style.transform = ""; }}
           >
-            <MessageCircle size={20} /> Falar no WhatsApp agora
+            <WhatsAppIcon size={20} /> Falar no WhatsApp agora
           </a>
           <a
             href="#frota"

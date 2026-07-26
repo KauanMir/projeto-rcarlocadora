@@ -1,9 +1,10 @@
 "use client";
 
-import { ShieldCheck, Wrench, Zap, Tag, MapPin, MessageCircle } from "lucide-react";
+import { ShieldCheck, Wrench, Zap, Tag, MapPin } from "lucide-react";
 import { BENEFITS } from "@/utils/constants";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
-const ICONS = { ShieldCheck, Wrench, Zap, Tag, MapPin, MessageCircle } as const;
+const ICONS = { ShieldCheck, Wrench, Zap, Tag, MapPin, MessageCircle: WhatsAppIcon } as const;
 
 export function BenefitsSection() {
   return (

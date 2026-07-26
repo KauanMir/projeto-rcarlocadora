@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, ArrowRight, ArrowLeft, MessageCircle, Star, ExternalLink, ChevronDown } from "lucide-react";
+import { MapPin, ArrowRight, ArrowLeft, Star, ExternalLink, ChevronDown } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBookingStore } from "@/store/bookingStore";
 import { todayLocal } from "@/utils/dates";
@@ -467,7 +468,7 @@ function HeroBookingCard() {
             {BOOKING_ENABLED ? (
               <>Buscar veículos disponíveis <ArrowRight size={18} /></>
             ) : (
-              <>Consultar disponibilidade <MessageCircle size={18} /></>
+              <>Consultar disponibilidade <WhatsAppIcon size={18} /></>
             )}
           </button>
         </div>

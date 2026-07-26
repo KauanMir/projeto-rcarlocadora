@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, MessageCircle, Fuel, Settings, Users } from "lucide-react";
+import { ArrowRight, Fuel, Settings, Users } from "lucide-react";
 import { SHOWROOM_CATEGORIES, FLEET_FILTERS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
 import { buildVehicleQuoteWhatsAppUrl } from "@/utils/whatsapp";
 import { BOOKING_ENABLED } from "@/lib/feature-flags";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { ShowroomCategory } from "@/types/vehicle";
 
 function FleetCard({ category, index }: { category: ShowroomCategory; index: number }) {
@@ -180,7 +181,7 @@ function FleetCard({ category, index }: { category: ShowroomCategory; index: num
               }}
             >
               Solicitar cotação
-              <MessageCircle size={15} style={{ flexShrink: 0 }} />
+              <WhatsAppIcon size={15} style={{ flexShrink: 0 }} />
             </a>
           )}
         </div>
