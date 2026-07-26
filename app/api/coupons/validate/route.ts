@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { BOOKING_ENABLED } from "@/lib/feature-flags";
+import { getAdminSession } from "@/lib/admin-auth";
 
 const schema = z.object({
   code:         z.string().min(1),
@@ -10,7 +11,7 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  if (!BOOKING_ENABLED) {
+  if (!BOOKING_ENABLED && !(await getAdminSession())) {
     return NextResponse.json(
       { error: "Validação de cupons está temporariamente desativada.", code: "BOOKING_DISABLED" },
       { status: 403 }

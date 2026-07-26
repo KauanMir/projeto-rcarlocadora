@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createReservation, VehicleUnavailableError, VehicleNotFoundError } from "@/services/reservation";
 import { calcRentalDays, MAX_RENTAL_DAYS, MIN_RENTAL_DAYS } from "@/utils/dates";
 import { BOOKING_ENABLED } from "@/lib/feature-flags";
+import { getAdminSession } from "@/lib/admin-auth";
 
 const schema = z.object({
   vehicleId:       z.string().min(1),
@@ -20,7 +21,7 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  if (!BOOKING_ENABLED) {
+  if (!BOOKING_ENABLED && !(await getAdminSession())) {
     return NextResponse.json(
       { error: "Reservas online estão temporariamente desativadas. Fale conosco pelo WhatsApp.", code: "BOOKING_DISABLED" },
       { status: 403 }
