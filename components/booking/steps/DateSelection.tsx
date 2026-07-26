@@ -141,7 +141,7 @@ export function DateSelection() {
             {exceedsMaxDays ? (
               <>
                 <div style={{ color: "#f87171", fontWeight: 600, fontSize: 14 }}>
-                  {rentalDays} dias — período muito longo
+                  {rentalDays} dias, período muito longo
                 </div>
                 <div style={{ color: "rgba(248,113,113,0.6)", fontSize: 12.5, marginTop: 2 }}>
                   Máximo permitido: {MAX_RENTAL_DAYS} dias

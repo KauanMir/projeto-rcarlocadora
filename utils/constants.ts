@@ -47,7 +47,7 @@ export const HOW_STEPS = [
     n: "02",
     title: "Personalize a reserva",
     tag: "Passo 02",
-    detail: "Datas, cobertura e adicionais com preço em tempo real — sem surpresas.",
+    detail: "Datas, cobertura e adicionais com preço em tempo real, sem surpresas.",
     icon: "Sliders",
   },
   {

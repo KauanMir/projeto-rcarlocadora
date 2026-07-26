@@ -35,7 +35,7 @@ export function CTASection() {
 
         {/* Subtext */}
         <p style={{ color: "rgba(24,18,3,0.72)", fontSize: 18, maxWidth: 520, lineHeight: 1.6, fontWeight: 600 }}>
-          Fale com a gente pelo WhatsApp e garanta seu veículo. Alta demanda esta semana — garanta já o seu.
+          Fale com a gente pelo WhatsApp e garanta seu veículo. Alta demanda esta semana, garanta já o seu.
         </p>
 
         {/* CTAs */}

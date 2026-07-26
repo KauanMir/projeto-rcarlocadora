@@ -158,7 +158,7 @@ export function AddonsSelection() {
       </div>
 
       <p style={{ color: "var(--d-4)", fontSize: 12, fontStyle: "italic" }}>
-        Você pode pular esta etapa — adicionais são completamente opcionais.
+        Você pode pular esta etapa. Os adicionais são completamente opcionais.
       </p>
     </div>
   );

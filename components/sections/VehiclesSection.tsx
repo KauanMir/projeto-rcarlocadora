@@ -210,8 +210,8 @@ export function VehiclesSection() {
             </h2>
             <p style={{ color: "var(--l-2)", fontSize: 16.5, lineHeight: 1.6, marginTop: 18 }}>
               {BOOKING_ENABLED
-                ? "Reserve a categoria e receba o melhor modelo disponível — todos com ar-condicionado, manutenção em dia e documentação regularizada."
-                : "Consulte a categoria ideal e receba uma cotação personalizada — todos com ar-condicionado, manutenção em dia e documentação regularizada."}
+                ? "Reserve a categoria e receba o melhor modelo disponível. Todos os veículos contam com ar-condicionado, manutenção em dia e documentação regularizada."
+                : "Consulte a categoria ideal e receba uma cotação personalizada. Todos os veículos contam com ar-condicionado, manutenção em dia e documentação regularizada."}
             </p>
           </div>
 
