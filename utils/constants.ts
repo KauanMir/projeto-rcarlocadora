@@ -1,10 +1,12 @@
 import type { Vehicle, ShowroomCategory } from "@/types/vehicle";
 import type { InsuranceOption, Addon } from "@/types/booking";
+import { buildGeneralWhatsAppUrl } from "@/utils/whatsapp";
 
 export const SITE_NAME = "RCAR";
 export const SITE_TAGLINE = "Aluguel de Veículos em Gama-DF.";
 
-export const WHATSAPP_HREF = "https://wa.link/jn6p0u";
+export const WHATSAPP_HREF = buildGeneralWhatsAppUrl();
+export const WHATSAPP_DISPLAY_NUMBER = "(61) 9995-9334";
 export const INSTAGRAM_HREF = "https://www.instagram.com/rcar.alugueldecarros/";
 export const INSTAGRAM_HANDLE = "@rcar.alugueldecarros";
 

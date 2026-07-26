@@ -7,6 +7,8 @@ import { Users, DoorOpen, Fuel, Cog } from "lucide-react";
 import { useBookingStore } from "@/store/bookingStore";
 import { CATEGORY_LABELS, FUEL_LABELS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
+import { buildVehicleQuoteWhatsAppUrl } from "@/utils/whatsapp";
+import { BOOKING_ENABLED } from "@/lib/feature-flags";
 
 const BRAND_TINT: Record<string, string> = {
   Hyundai:   "radial-gradient(ellipse at top, rgba(40,60,120,0.2) 0%, transparent 60%)",
@@ -53,6 +55,11 @@ export function VehicleModal() {
 
   function handleReserve() {
     if (!modalVehicle) return;
+    if (!BOOKING_ENABLED) {
+      window.open(buildVehicleQuoteWhatsAppUrl(`${modalVehicle.brand} ${modalVehicle.model}`), "_blank", "noopener,noreferrer");
+      closeModal();
+      return;
+    }
     // Do NOT pre-set the vehicle here — home page uses mocked IDs that don't
     // match real DB CUIDs. The user selects from real DB vehicles at step 2.
     setStep(pickupDate && returnDate ? 2 : 1);
@@ -141,10 +148,18 @@ export function VehicleModal() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-black text-2xl leading-none" aria-label={`${formatPrice(modalVehicle.pricePerDay)} por dia`}>
-                    {formatPrice(modalVehicle.pricePerDay)}
-                  </div>
-                  <div className="text-white/25 text-xs mt-1" aria-hidden="true">por dia</div>
+                  {BOOKING_ENABLED ? (
+                    <>
+                      <div className="text-white font-black text-2xl leading-none" aria-label={`${formatPrice(modalVehicle.pricePerDay)} por dia`}>
+                        {formatPrice(modalVehicle.pricePerDay)}
+                      </div>
+                      <div className="text-white/25 text-xs mt-1" aria-hidden="true">por dia</div>
+                    </>
+                  ) : (
+                    <div className="text-white font-black text-sm leading-tight max-w-[110px]">
+                      Consulte disponibilidade
+                    </div>
+                  )}
                   <div className="text-white/20 text-[9px] tracking-[0.15em] uppercase mt-0.5">
                     {CATEGORY_LABELS[modalVehicle.category]}
                   </div>
@@ -182,10 +197,10 @@ export function VehicleModal() {
                 <button
                   ref={reserveButtonRef}
                   onClick={handleReserve}
-                  aria-label={`Reservar ${modalVehicle.brand} ${modalVehicle.model}`}
+                  aria-label={BOOKING_ENABLED ? `Reservar ${modalVehicle.brand} ${modalVehicle.model}` : `Solicitar cotação para ${modalVehicle.brand} ${modalVehicle.model}`}
                   className="flex-1 h-11 bg-white text-black hover:bg-white/90 active:scale-[0.97] font-bold rounded-sm text-sm transition-all focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
                 >
-                  Reservar Este Veículo
+                  {BOOKING_ENABLED ? "Reservar Este Veículo" : "Solicitar Cotação"}
                 </button>
               </div>
             </div>

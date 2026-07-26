@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Fuel, Settings, Users } from "lucide-react";
+import { ArrowRight, MessageCircle, Fuel, Settings, Users } from "lucide-react";
 import { SHOWROOM_CATEGORIES, FLEET_FILTERS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
+import { buildVehicleQuoteWhatsAppUrl } from "@/utils/whatsapp";
+import { BOOKING_ENABLED } from "@/lib/feature-flags";
 import type { ShowroomCategory } from "@/types/vehicle";
 
 function FleetCard({ category, index }: { category: ShowroomCategory; index: number }) {
@@ -112,40 +114,75 @@ function FleetCard({ category, index }: { category: ShowroomCategory; index: num
         {/* Price + CTA */}
         <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid var(--l-line)", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <div style={{ color: "var(--l-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>a partir de</div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 27, color: "var(--graphite)", lineHeight: 1.1 }}>
-              {formatPrice(category.pricePerDay)}<span style={{ fontSize: 13, color: "var(--l-3)", fontWeight: 600 }}>/dia</span>
-            </div>
+            {BOOKING_ENABLED ? (
+              <>
+                <div style={{ color: "var(--l-3)", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>a partir de</div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 27, color: "var(--graphite)", lineHeight: 1.1 }}>
+                  {formatPrice(category.pricePerDay)}<span style={{ fontSize: 13, color: "var(--l-3)", fontWeight: 600 }}>/dia</span>
+                </div>
+              </>
+            ) : (
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 15.5, color: "var(--graphite)", lineHeight: 1.3 }}>
+                Consulte disponibilidade
+              </div>
+            )}
           </div>
-          <Link
-            href={`/booking?category=${category.dbCategory}`}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "9px 16px 9px 18px",
-              borderRadius: "var(--r-sm)",
-              background: hov ? "var(--gold)" : "rgba(255,184,0,0.10)",
-              border: `1px solid ${hov ? "var(--gold)" : "rgba(255,184,0,0.35)"}`,
-              fontFamily: "var(--font-display)",
-              fontWeight: 700,
-              fontSize: 13.5,
-              color: hov ? "#181203" : "var(--gold)",
-              transition: "all .2s",
-              textDecoration: "none",
-              boxShadow: hov ? "0 4px 18px rgba(255,184,0,0.22)" : "none",
-            }}
-          >
-            Reservar
-            <ArrowRight
-              size={15}
+          {BOOKING_ENABLED ? (
+            <Link
+              href={`/booking?category=${category.dbCategory}`}
               style={{
-                transition: "transform .2s",
-                transform: hov ? "translateX(3px)" : "none",
-                flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "9px 16px 9px 18px",
+                borderRadius: "var(--r-sm)",
+                background: hov ? "var(--gold)" : "rgba(255,184,0,0.10)",
+                border: `1px solid ${hov ? "var(--gold)" : "rgba(255,184,0,0.35)"}`,
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: 13.5,
+                color: hov ? "#181203" : "var(--gold)",
+                transition: "all .2s",
+                textDecoration: "none",
+                boxShadow: hov ? "0 4px 18px rgba(255,184,0,0.22)" : "none",
               }}
-            />
-          </Link>
+            >
+              Reservar
+              <ArrowRight
+                size={15}
+                style={{
+                  transition: "transform .2s",
+                  transform: hov ? "translateX(3px)" : "none",
+                  flexShrink: 0,
+                }}
+              />
+            </Link>
+          ) : (
+            <a
+              href={buildVehicleQuoteWhatsAppUrl(category.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "9px 16px 9px 18px",
+                borderRadius: "var(--r-sm)",
+                background: hov ? "var(--gold)" : "rgba(255,184,0,0.10)",
+                border: `1px solid ${hov ? "var(--gold)" : "rgba(255,184,0,0.35)"}`,
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: 13.5,
+                color: hov ? "#181203" : "var(--gold)",
+                transition: "all .2s",
+                textDecoration: "none",
+                boxShadow: hov ? "0 4px 18px rgba(255,184,0,0.22)" : "none",
+              }}
+            >
+              Solicitar cotação
+              <MessageCircle size={15} style={{ flexShrink: 0 }} />
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -171,7 +208,9 @@ export function VehiclesSection() {
               Encontre o carro <span style={{ color: "var(--l-3)" }}>da sua viagem.</span>
             </h2>
             <p style={{ color: "var(--l-2)", fontSize: 16.5, lineHeight: 1.6, marginTop: 18 }}>
-              Reserve a categoria e receba o melhor modelo disponível — todos com ar-condicionado, manutenção em dia e documentação regularizada.
+              {BOOKING_ENABLED
+                ? "Reserve a categoria e receba o melhor modelo disponível — todos com ar-condicionado, manutenção em dia e documentação regularizada."
+                : "Consulte a categoria ideal e receba uma cotação personalizada — todos com ar-condicionado, manutenção em dia e documentação regularizada."}
             </p>
           </div>
 
@@ -209,7 +248,9 @@ export function VehiclesSection() {
         </div>
 
         <p style={{ textAlign: "center", marginTop: 44, color: "var(--l-3)", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.06em" }}>
-          * Valores não incluem taxas do contrato. Diárias a partir do valor indicado por categoria.
+          {BOOKING_ENABLED
+            ? "* Valores não incluem taxas do contrato. Diárias a partir do valor indicado por categoria."
+            : "* Consulte a disponibilidade e as condições de cada categoria pelo WhatsApp."}
         </p>
       </div>
     </section>

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, ArrowRight, ArrowLeft, Star, ExternalLink, ChevronDown } from "lucide-react";
+import { MapPin, ArrowRight, ArrowLeft, MessageCircle, Star, ExternalLink, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBookingStore } from "@/store/bookingStore";
 import { todayLocal } from "@/utils/dates";
 import { SHOWROOM_CATEGORIES, HERO_STATS } from "@/utils/constants";
 import { formatPrice } from "@/utils/format";
+import { buildGeneralWhatsAppUrl } from "@/utils/whatsapp";
+import { BOOKING_ENABLED } from "@/lib/feature-flags";
 import { RcarDateRangePicker } from "@/components/ui/RcarDateRangePicker";
 
 const CAROUSEL_IDS = [
@@ -79,10 +81,18 @@ function VehicleCarousel() {
           </p>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ color: "var(--d-3)", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>a partir de</div>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 26, color: "var(--gold)", lineHeight: 1.1 }}>
-            {formatPrice(cur.pricePerDay)}<span style={{ fontSize: 13, color: "var(--d-3)", fontWeight: 400 }}>/dia</span>
-          </div>
+          {BOOKING_ENABLED ? (
+            <>
+              <div style={{ color: "var(--d-3)", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>a partir de</div>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 26, color: "var(--gold)", lineHeight: 1.1 }}>
+                {formatPrice(cur.pricePerDay)}<span style={{ fontSize: 13, color: "var(--d-3)", fontWeight: 400 }}>/dia</span>
+              </div>
+            </>
+          ) : (
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, color: "var(--gold)", lineHeight: 1.3, maxWidth: 130 }}>
+              Consulte disponibilidade
+            </div>
+          )}
         </div>
       </div>
 
@@ -304,6 +314,10 @@ function HeroBookingCard() {
   const today = todayLocal();
 
   function handleSearch() {
+    if (!BOOKING_ENABLED) {
+      window.open(buildGeneralWhatsAppUrl(), "_blank", "noopener,noreferrer");
+      return;
+    }
     if (pickup) setPickupDate(pickup);
     if (ret) setReturnDate(ret);
     setStep(pickup && ret ? 2 : 1);
@@ -358,7 +372,9 @@ function HeroBookingCard() {
               <MapPin size={18} />
             </div>
             <div>
-              <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17 }}>Reserve seu veículo</div>
+              <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17 }}>
+                {BOOKING_ENABLED ? "Reserve seu veículo" : "Consulte disponibilidade"}
+              </div>
               <div style={{ color: "var(--d-2)", fontSize: 12, marginTop: 1 }}>Resposta em minutos pelo WhatsApp</div>
             </div>
           </div>
@@ -448,7 +464,11 @@ function HeroBookingCard() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--gold-soft)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--gold)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
           >
-            Buscar veículos disponíveis <ArrowRight size={18} />
+            {BOOKING_ENABLED ? (
+              <>Buscar veículos disponíveis <ArrowRight size={18} /></>
+            ) : (
+              <>Consultar disponibilidade <MessageCircle size={18} /></>
+            )}
           </button>
         </div>
 
@@ -499,7 +519,9 @@ export function HeroSection() {
             Alugue seu carro,<br /><span style={{ color: "var(--gold)" }}>sem burocracia.</span>
           </h1>
           <p style={{ color: "var(--d-1)", fontSize: 18, lineHeight: 1.6, maxWidth: 520, marginTop: 22 }}>
-            Carros revisados, prontos para rodar. Sem análise de crédito. Reserve em minutos e finalize direto pelo WhatsApp.
+            {BOOKING_ENABLED
+              ? "Carros revisados, prontos para rodar. Sem análise de crédito. Reserve em minutos e finalize direto pelo WhatsApp."
+              : "Carros revisados, prontos para rodar. Conheça a frota completa e receba uma cotação personalizada direto pelo WhatsApp."}
           </p>
         </div>
 

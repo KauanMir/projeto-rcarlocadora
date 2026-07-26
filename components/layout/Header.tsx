@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { LogoMark } from "@/components/brand/LogoMark";
 import { NAV_LINKS } from "@/utils/constants";
+import { BOOKING_ENABLED } from "@/lib/feature-flags";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -81,7 +82,7 @@ export function Header() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--gold-soft)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--gold)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
           >
-            Reservar Agora
+            {BOOKING_ENABLED ? "Reservar Agora" : "Solicitar Cotação"}
           </a>
         </div>
 
@@ -130,7 +131,7 @@ export function Header() {
               fontFamily: "var(--font-display)",
             }}
           >
-            Reservar Agora
+            {BOOKING_ENABLED ? "Reservar Agora" : "Solicitar Cotação"}
           </a>
           <Link
             href="/admin/login"

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { MapPin, Phone } from "lucide-react";
 import { LogoMark } from "@/components/brand/LogoMark";
-import { WHATSAPP_HREF, INSTAGRAM_HREF, INSTAGRAM_HANDLE } from "@/utils/constants";
+import { WHATSAPP_HREF, WHATSAPP_DISPLAY_NUMBER, INSTAGRAM_HREF, INSTAGRAM_HANDLE } from "@/utils/constants";
 
 const NAV_COLS = [
   {
@@ -96,7 +96,7 @@ export function Footer() {
               <li style={{ display: "flex", gap: 10, color: "var(--d-1)", fontSize: 14 }}>
                 <Phone size={16} style={{ color: "var(--gold)", flexShrink: 0 }} />
                 <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" style={{ color: "var(--d-1)", textDecoration: "none" }} onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")} onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--d-1)")}>
-                  (61) 9 9999-9999
+                  {WHATSAPP_DISPLAY_NUMBER}
                 </a>
               </li>
               <li style={{ display: "flex", gap: 10, color: "var(--d-1)", fontSize: 14 }}>

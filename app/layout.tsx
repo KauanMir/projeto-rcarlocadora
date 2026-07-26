@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Sora, Manrope, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/Toast";
+import { BOOKING_ENABLED } from "@/lib/feature-flags";
 
 const sora = Sora({
   variable: "--font-sora",
@@ -115,8 +116,8 @@ const LOCAL_BUSINESS_SCHEMA = {
   description:
     "Locadora de veículos em Gama, Brasília e região. Frota moderna com preços transparentes.",
   url: BASE_URL,
-  telephone: "+55 61 9 9999-9999",
-  priceRange: "R$ 89 - R$ 249/dia",
+  telephone: "+55 61 9995-9334",
+  ...(BOOKING_ENABLED ? { priceRange: "R$ 89 - R$ 249/dia" } : {}),
   currenciesAccepted: "BRL",
   paymentAccepted: "Cartão de crédito, Cartão de débito, PIX",
   address: {
@@ -148,12 +149,19 @@ const LOCAL_BUSINESS_SCHEMA = {
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Frota RCAR",
-    itemListElement: [
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Hyundai HB20" }, price: "89", priceCurrency: "BRL" },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chevrolet Onix" }, price: "99", priceCurrency: "BRL" },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Toyota Corolla" }, price: "189", priceCurrency: "BRL" },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Jeep Compass" }, price: "249", priceCurrency: "BRL" },
-    ],
+    itemListElement: BOOKING_ENABLED
+      ? [
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Hyundai HB20" }, price: "89", priceCurrency: "BRL" },
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chevrolet Onix" }, price: "99", priceCurrency: "BRL" },
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Toyota Corolla" }, price: "189", priceCurrency: "BRL" },
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Jeep Compass" }, price: "249", priceCurrency: "BRL" },
+        ]
+      : [
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Hyundai HB20" } },
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chevrolet Onix" } },
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Toyota Corolla" } },
+          { "@type": "Offer", itemOffered: { "@type": "Product", name: "Jeep Compass" } },
+        ],
   },
 };
 

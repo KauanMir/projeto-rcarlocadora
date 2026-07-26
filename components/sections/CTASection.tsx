@@ -2,6 +2,7 @@
 
 import { MessageCircle } from "lucide-react";
 import { WHATSAPP_HREF } from "@/utils/constants";
+import { BOOKING_ENABLED } from "@/lib/feature-flags";
 
 export function CTASection() {
   return (
@@ -25,7 +26,11 @@ export function CTASection() {
 
         {/* Headline */}
         <h2 style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.4rem)", color: "#181203", textWrap: "balance" as React.CSSProperties["textWrap"], fontFamily: "var(--font-display)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 0.98, margin: 0 }}>
-          Reserve agora e saia<br />dirigindo hoje mesmo.
+          {BOOKING_ENABLED ? (
+            <>Reserve agora e saia<br />dirigindo hoje mesmo.</>
+          ) : (
+            <>Solicite sua cotação<br />e saia dirigindo em breve.</>
+          )}
         </h2>
 
         {/* Subtext */}
