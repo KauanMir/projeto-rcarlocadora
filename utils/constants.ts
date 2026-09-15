@@ -159,7 +159,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Volkswagen Polo Track",
     pricePerDay: 0,
     models: ["Polo Track"],
-    image: null,
+    image: "/vehicles/polo-track.png",
     dbCategory: "economy",
   },
   {
@@ -189,7 +189,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Toyota Corolla XEi",
     pricePerDay: 0,
     models: ["Corolla XEi"],
-    image: null,
+    image: "/vehicles/corolla.png",
     dbCategory: "sedan",
   },
   {
@@ -221,7 +221,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Jeep Compass",
     pricePerDay: 0,
     models: ["Compass"],
-    image: null,
+    image: "/vehicles/compass.png",
     dbCategory: "suv",
   },
   {
@@ -229,7 +229,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Jeep Renegade",
     pricePerDay: 0,
     models: ["Renegade"],
-    image: null,
+    image: "/vehicles/renegade.png",
     dbCategory: "suv",
   },
   {
@@ -237,7 +237,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Nissan Kicks",
     pricePerDay: 0,
     models: ["Kicks"],
-    image: null,
+    image: "/vehicles/kicks.png",
     dbCategory: "suv",
   },
   {
@@ -279,7 +279,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Fiat Strada",
     pricePerDay: 0,
     models: ["Strada"],
-    image: null,
+    image: "/vehicles/strada.png",
     dbCategory: "pickup",
   },
   {
@@ -287,7 +287,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Volkswagen Saveiro",
     pricePerDay: 0,
     models: ["Saveiro"],
-    image: null,
+    image: "/vehicles/saveiro.png",
     dbCategory: "pickup",
   },
   {
@@ -295,7 +295,7 @@ export const SHOWROOM_CATEGORIES: ShowroomCategory[] = [
     name: "Fiat Fiorino",
     pricePerDay: 0,
     models: ["Fiorino"],
-    image: null,
+    image: "/vehicles/fiorino.png",
     dbCategory: "pickup",
   },
 ];
